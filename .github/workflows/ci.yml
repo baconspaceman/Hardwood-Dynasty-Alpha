@@ -1,0 +1,42 @@
+name: Windows Test Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  export-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download Godot editor
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force .tools\godot | Out-Null
+          Invoke-WebRequest -Uri 'https://godot-releases.nbg1.your-objectstorage.com/4.6.2-stable/Godot_v4.6.2-stable_win64.exe.zip' -OutFile '.tools\godot\Godot_v4.6.2-stable_win64.exe.zip'
+          Expand-Archive -LiteralPath '.tools\godot\Godot_v4.6.2-stable_win64.exe.zip' -DestinationPath '.tools\godot\editor' -Force
+
+      - name: Install export templates
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri 'https://godot-releases.nbg1.your-objectstorage.com/4.6.2-stable/Godot_v4.6.2-stable_export_templates.tpz' -OutFile '.tools\godot\Godot_v4.6.2-stable_export_templates.tpz'
+          Copy-Item '.tools\godot\Godot_v4.6.2-stable_export_templates.tpz' '.tools\godot\Godot_v4.6.2-stable_export_templates.zip' -Force
+          Expand-Archive -LiteralPath '.tools\godot\Godot_v4.6.2-stable_export_templates.zip' -DestinationPath '.tools\godot\templates' -Force
+          $templateRoot = Join-Path $env:APPDATA 'Godot\export_templates\4.6.2.stable'
+          New-Item -ItemType Directory -Force $templateRoot | Out-Null
+          Copy-Item '.tools\godot\templates\templates\*' $templateRoot -Recurse -Force
+
+      - name: Export Windows build
+        shell: pwsh
+        run: .\scripts\build_windows.ps1 -GodotExecutable .\.tools\godot\editor\Godot_v4.6.2-stable_win64_console.exe
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hardwood-dynasty-alpha-windows
+          path: build/HardwoodDynastyAlpha.exe
