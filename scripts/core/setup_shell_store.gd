@@ -1,37 +1,39 @@
 extends RefCounted
 class_name SetupShellStore
 
-const SAVE_PATH := "user://setup_shell.cfg"
-const VERSION := 1
-const DEFAULT_STATE := {
-  "version": VERSION,
-  "selected_year": 0,
-  "status": "awaiting-year",
-  "generated_league": false,
-  "note": "Wait for the user to provide a starting year before generating the league.",
-}
+const SAVE_PATH := "user://hardwood_dynasty_alpha_state.json"
+const LeagueSim = preload("res://scripts/core/league_sim.gd")
 
 static func load_state() -> Dictionary:
-  var config := ConfigFile.new()
-  var error := config.load(SAVE_PATH)
+  var base_state: Dictionary = LeagueSim.create_blank_state()
+  if not FileAccess.file_exists(SAVE_PATH):
+    return base_state
 
-  if error != OK:
-    return DEFAULT_STATE.duplicate(true)
+  var file = FileAccess.open(SAVE_PATH, FileAccess.READ)
+  if file == null:
+    return base_state
 
-  var state := DEFAULT_STATE.duplicate(true)
-  for key in DEFAULT_STATE.keys():
-    if config.has_section_key("setup", key):
-      state[key] = config.get_value("setup", key)
+  var parsed = JSON.parse_string(file.get_as_text())
+  if typeof(parsed) != TYPE_DICTIONARY:
+    return base_state
 
-  return state
+  if int(parsed.get("version", 0)) != LeagueSim.SAVE_VERSION:
+    return base_state
+
+  for key in base_state.keys():
+    if not parsed.has(key):
+      parsed[key] = base_state[key]
+  return parsed
+
 
 static func save_state(state: Dictionary) -> void:
-  var config := ConfigFile.new()
-  for key in state.keys():
-    config.set_value("setup", key, state[key])
-  config.save(SAVE_PATH)
+  var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+  if file == null:
+    return
+  file.store_string(JSON.stringify(state))
+
 
 static func reset_state() -> Dictionary:
-  if FileAccess.file_exists(SAVE_PATH):
-    DirAccess.remove_absolute(SAVE_PATH)
-  return DEFAULT_STATE.duplicate(true)
+  var base_state: Dictionary = LeagueSim.create_blank_state()
+  save_state(base_state)
+  return base_state
