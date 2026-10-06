@@ -493,19 +493,20 @@ impl League {
         }
         let mut rng = self.rng.fork("create-player");
         // age and stage
-        let (age, class, stage, origin) =
-            match spec.start.as_str() {
-                "hs9" => (14, 9u8, LifeStage::HighSchool, OriginKind::HighSchool),
-                "hs10" => (15, 10, LifeStage::HighSchool, OriginKind::HighSchool),
-                "hs11" => (16, 11, LifeStage::HighSchool, OriginKind::HighSchool),
-                "hs12" => (17, 12, LifeStage::HighSchool, OriginKind::HighSchool),
-                "college" => (18, 1, LifeStage::College, OriginKind::College),
-                "pro" => (21, 0, LifeStage::Pro, OriginKind::College),
-                "overseas" => (19, 0, LifeStage::Overseas, OriginKind::International),
-                other => return Err(format!(
+        let (age, class, stage, origin) = match spec.start.as_str() {
+            "hs9" => (14, 9u8, LifeStage::HighSchool, OriginKind::HighSchool),
+            "hs10" => (15, 10, LifeStage::HighSchool, OriginKind::HighSchool),
+            "hs11" => (16, 11, LifeStage::HighSchool, OriginKind::HighSchool),
+            "hs12" => (17, 12, LifeStage::HighSchool, OriginKind::HighSchool),
+            "college" => (18, 1, LifeStage::College, OriginKind::College),
+            "pro" => (21, 0, LifeStage::Pro, OriginKind::College),
+            "overseas" => (19, 0, LifeStage::Overseas, OriginKind::International),
+            other => {
+                return Err(format!(
                     "Unknown start '{other}'. Use hs9, hs10, hs11, hs12, college, overseas or pro."
-                )),
-            };
+                ))
+            }
+        };
         let potential: f64 = match spec.talent {
             1 => 62.0,
             2 => 70.0,

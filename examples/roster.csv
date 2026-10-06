@@ -1,0 +1,15 @@
+# Example roster file. Only 'name' is required. Everything else is optional.
+# Teams are matched by abbreviation, city or nickname of a team in your league (try BOS, CHI, LAL...).
+# Give an 'overall' and the engine builds a full set of ratings. Add real-style stats (ppg, rpg, apg,
+# three_pa, three_pct, ft_pct, spg, bpg) and it infers the player's skills from them.
+# You can also set any rating directly with its key as a column: three_point, ball_handle, block ...
+team,name,age,position,height_in,overall,potential,salary,years,country,ppg,rpg,apg,three_pa,three_pct
+BOS,Marcus Vale,27,SF,79,88,88,32000000,3,USA,27.5,6.1,4.0,6.5,0.38
+BOS,Dusan Petrovic,30,C,84,76,76,14000000,2,SRB,15.0,10.5,2.0,0.5,0.25
+BOS,Theo Armand,24,PG,74,72,78,6000000,2,FRA,10.0,3.0,9.5,3.0,0.36
+BOS,Jalen Cruz,26,SG,77,68,68,4500000,1,USA,13.0,3.5,2.5,6.0,0.40
+BOS,Eli Brandt,28,PF,81,64,64,2500000,1,GER,8.0,6.5,1.0,2.0,0.34
+BOS,Sam Okafor,25,PF,82,62,66,1800000,2,NGR,7.0,7.5,0.8,0.0,0.00
+BOS,Pete Lindqvist,31,SG,77,58,58,1200000,1,SWE,6.0,2.0,2.0,4.0,0.38
+BOS,Gus Alvarez,23,PG,73,56,64,900000,2,ESP,5.0,2.0,4.0,2.0,0.33
+FA,Rico Santos,29,SF,78,55,55,,,BRA,6.5,3.0,1.0,2.5,0.35

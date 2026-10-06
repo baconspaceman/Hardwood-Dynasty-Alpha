@@ -1540,7 +1540,10 @@ impl League {
             }
             let age_out = year - r >= 4;
             let notable = p.awards.len() >= 2 || p.peak_ovr >= 75;
-            let amateur_only = p.seasons.iter().all(|s| !matches!(s.level, Level::Pro | Level::Overseas));
+            let amateur_only = p
+                .seasons
+                .iter()
+                .all(|s| !matches!(s.level, Level::Pro | Level::Overseas));
             if !(age_out && !notable || amateur_only && year - r >= 1) {
                 continue;
             }

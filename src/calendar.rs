@@ -198,7 +198,10 @@ impl League {
             // A retirement choice: veterans eventually hang it up.
             if d.kind == "retire" {
                 if let Some(pid) = d.subject {
-                    if self.age_of(pid) + 1 >= 37 && d.options.iter().any(|o| o.id == "retire") && self.resolve_decision(d.id, "retire", true).is_ok() {
+                    if self.age_of(pid) + 1 >= 37
+                        && d.options.iter().any(|o| o.id == "retire")
+                        && self.resolve_decision(d.id, "retire", true).is_ok()
+                    {
                         continue;
                     }
                 }

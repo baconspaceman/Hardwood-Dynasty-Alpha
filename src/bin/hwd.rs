@@ -27,7 +27,11 @@ struct Session {
 
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    let mut s = Session { league: None, save_path: DEFAULT_SAVE.into(), mods_dir: "mods".into() };
+    let mut s = Session {
+        league: None,
+        save_path: DEFAULT_SAVE.into(),
+        mods_dir: "mods".into(),
+    };
     if args.is_empty() {
         repl(&mut s);
         return;
@@ -126,6 +130,7 @@ fn dispatch(s: &mut Session, line: &str) -> bool {
         "help" | "?" => help(a.first().copied()),
         "quickstart" => quickstart(),
         "new" => cmd_new(s, &a),
+        "newpack" => cmd_newpack(s, &a),
         "load" => cmd_load(s, &a),
         "save" => cmd_save(s, &a),
         "rules" => cmd_rules(s, &a),
@@ -173,7 +178,10 @@ fn rpad(s: &str, n: usize) -> String {
 
 fn rating(l: &League, ovr: f64) -> String {
     if l.settings.text("display.rating_scale") == "scout" {
-        format!("{:.0}", 20.0 + ((ovr - 25.0) / 74.0 * 60.0).clamp(0.0, 60.0))
+        format!(
+            "{:.0}",
+            20.0 + ((ovr - 25.0) / 74.0 * 60.0).clamp(0.0, 60.0)
+        )
     } else {
         format!("{ovr:.0}")
     }
@@ -279,7 +287,11 @@ QUICKSTART
 fn load_mod_texts(dir: &str) -> Vec<String> {
     let mut v = vec![];
     if let Ok(rd) = std::fs::read_dir(dir) {
-        let mut files: Vec<_> = rd.filter_map(|e| e.ok()).map(|e| e.path()).filter(|p| p.extension().map(|x| x == "json").unwrap_or(false)).collect();
+        let mut files: Vec<_> = rd
+            .filter_map(|e| e.ok())
+            .map(|e| e.path())
+            .filter(|p| p.extension().map(|x| x == "json").unwrap_or(false))
+            .collect();
         files.sort();
         for f in files {
             if let Ok(t) = std::fs::read_to_string(&f) {
@@ -291,18 +303,46 @@ fn load_mod_texts(dir: &str) -> Vec<String> {
 }
 
 fn cmd_new(s: &mut Session, a: &[&str]) {
-    let year = a.first().and_then(|y| y.parse::<i32>().ok()).unwrap_or(1996);
-    let seed = a.get(1).map(|x| x.to_string()).unwrap_or_else(|| format!("{}", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(1)));
-    let preset = a.iter().find_map(|x| x.strip_prefix("preset=")).map(|x| x.to_string());
+    let year = a
+        .first()
+        .and_then(|y| y.parse::<i32>().ok())
+        .unwrap_or(1996);
+    let seed = a.get(1).map(|x| x.to_string()).unwrap_or_else(|| {
+        format!(
+            "{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_secs())
+                .unwrap_or(1)
+        )
+    });
+    let preset = a
+        .iter()
+        .find_map(|x| x.strip_prefix("preset="))
+        .map(|x| x.to_string());
     let mods = load_mod_texts(&s.mods_dir);
     if !mods.is_empty() {
         println!("Loading {} mod pack(s) from '{}'.", mods.len(), s.mods_dir);
     }
     println!("Building the {year} league (seed '{seed}')...");
     let t0 = std::time::Instant::now();
-    match League::new(NewLeagueOptions { name: "My League".into(), year, seed, preset, mods, overrides: Default::default() }) {
+    match League::new(NewLeagueOptions {
+        name: "My League".into(),
+        year,
+        seed,
+        preset,
+        mods,
+        overrides: Default::default(),
+    }) {
         Ok(l) => {
-            println!("Done in {:.1}s: {} teams, {} players, {} colleges, {} overseas clubs.", t0.elapsed().as_secs_f64(), l.active_team_ids().len(), l.players.len(), l.colleges.len(), l.clubs.len());
+            println!(
+                "Done in {:.1}s: {} teams, {} players, {} colleges, {} overseas clubs.",
+                t0.elapsed().as_secs_f64(),
+                l.active_team_ids().len(),
+                l.players.len(),
+                l.colleges.len(),
+                l.clubs.len()
+            );
             println!("Rules: {}.", rules_summary(&l.rules));
             println!("Next: 'league' to see the teams, then 'role gm <team>' (or owner/coach), or 'create-player'.");
             s.league = Some(l);
@@ -316,8 +356,14 @@ fn cmd_save(s: &mut Session, a: &[&str]) {
         println!("Nothing to save yet.");
         return;
     };
-    let path = a.first().map(|x| x.to_string()).unwrap_or(s.save_path.clone());
-    match l.save_json().and_then(|j| std::fs::write(&path, j).map_err(|e| e.to_string())) {
+    let path = a
+        .first()
+        .map(|x| x.to_string())
+        .unwrap_or(s.save_path.clone());
+    match l
+        .save_json()
+        .and_then(|j| std::fs::write(&path, j).map_err(|e| e.to_string()))
+    {
         Ok(()) => {
             println!("Saved to {path}.");
             s.save_path = path;
@@ -327,8 +373,14 @@ fn cmd_save(s: &mut Session, a: &[&str]) {
 }
 
 fn cmd_load(s: &mut Session, a: &[&str]) {
-    let path = a.first().map(|x| x.to_string()).unwrap_or(s.save_path.clone());
-    match std::fs::read_to_string(&path).map_err(|e| e.to_string()).and_then(|j| League::load_json(&j)) {
+    let path = a
+        .first()
+        .map(|x| x.to_string())
+        .unwrap_or(s.save_path.clone());
+    match std::fs::read_to_string(&path)
+        .map_err(|e| e.to_string())
+        .and_then(|j| League::load_json(&j))
+    {
         Ok(l) => {
             println!("Loaded {path}: {}.", l.date_string());
             s.league = Some(l);
@@ -343,9 +395,21 @@ fn rules_summary(r: &hardwood_dynasty::era::Rules) -> String {
         "{}, {} games, {}{}, shot clock {}, {} teams make the playoffs{}",
         r.league_name,
         r.games,
-        if r.three_point { format!("3-pt line at {:.1} ft, ", r.three_distance) } else { "no 3-pt line, ".to_string() },
-        if r.hand_checking { "hand-checking allowed" } else { "hand-checking banned" },
-        if r.shot_clock > 0 { format!("{}s", r.shot_clock) } else { "none".into() },
+        if r.three_point {
+            format!("3-pt line at {:.1} ft, ", r.three_distance)
+        } else {
+            "no 3-pt line, ".to_string()
+        },
+        if r.hand_checking {
+            "hand-checking allowed"
+        } else {
+            "hand-checking banned"
+        },
+        if r.shot_clock > 0 {
+            format!("{}s", r.shot_clock)
+        } else {
+            "none".into()
+        },
         r.playoff_teams,
         if r.play_in { " (+ play-in)" } else { "" }
     )
@@ -353,23 +417,87 @@ fn rules_summary(r: &hardwood_dynasty::era::Rules) -> String {
 
 fn cmd_rules(s: &mut Session, a: &[&str]) {
     let c = Content::default();
-    let year = a.first().and_then(|y| y.parse::<i32>().ok()).or(s.league.as_ref().map(|l| l.year)).unwrap_or(2024);
+    let year = a
+        .first()
+        .and_then(|y| y.parse::<i32>().ok())
+        .or(s.league.as_ref().map(|l| l.year))
+        .unwrap_or(2024);
     let r = c.rules(year);
     let st = c.style(year);
     println!("RULEBOOK for the {year}-{:02} season", (year + 1) % 100);
-    println!("  League: {}   Games: {}   Quarter: {:.0} min   Overtime: {:.0} min", r.league_name, r.games, r.quarter_minutes, r.overtime_minutes);
-    println!("  Shot clock: {}   Three-point line: {}   Hand-checking: {}   Zone defense: {}", if r.shot_clock > 0 { format!("{}s", r.shot_clock) } else { "none".into() }, if r.three_point { format!("{:.2} ft", r.three_distance) } else { "none".into() }, if r.hand_checking { "legal" } else { "banned" }, if r.zone_defense { "legal" } else { "illegal" });
-    println!("  Playoffs: {} teams, series {:?}{}", r.playoff_teams, r.series_lengths, if r.play_in { ", with play-in" } else { "" });
-    println!("  Draft: {} rounds, {:?}{}{}", r.draft_rounds, r.lottery, if r.hs_allowed { ", high schoolers eligible" } else { "" }, if r.territorial_picks { ", territorial picks" } else { "" });
-    println!("  Free agency: {:?}   Cap: {:?}   Max contracts: {}   Luxury tax: {}   Aprons: {}", r.fa_regime, r.cap_type, r.max_contract, r.luxury_tax, r.aprons);
+    println!(
+        "  League: {}   Games: {}   Quarter: {:.0} min   Overtime: {:.0} min",
+        r.league_name, r.games, r.quarter_minutes, r.overtime_minutes
+    );
+    println!(
+        "  Shot clock: {}   Three-point line: {}   Hand-checking: {}   Zone defense: {}",
+        if r.shot_clock > 0 {
+            format!("{}s", r.shot_clock)
+        } else {
+            "none".into()
+        },
+        if r.three_point {
+            format!("{:.2} ft", r.three_distance)
+        } else {
+            "none".into()
+        },
+        if r.hand_checking { "legal" } else { "banned" },
+        if r.zone_defense { "legal" } else { "illegal" }
+    );
+    println!(
+        "  Playoffs: {} teams, series {:?}{}",
+        r.playoff_teams,
+        r.series_lengths,
+        if r.play_in { ", with play-in" } else { "" }
+    );
+    println!(
+        "  Draft: {} rounds, {:?}{}{}",
+        r.draft_rounds,
+        r.lottery,
+        if r.hs_allowed {
+            ", high schoolers eligible"
+        } else {
+            ""
+        },
+        if r.territorial_picks {
+            ", territorial picks"
+        } else {
+            ""
+        }
+    );
+    println!(
+        "  Free agency: {:?}   Cap: {:?}   Max contracts: {}   Luxury tax: {}   Aprons: {}",
+        r.fa_regime, r.cap_type, r.max_contract, r.luxury_tax, r.aprons
+    );
     let m = c.economy.season_money(&r, c.economy.table_cap(year), true);
     if m.cap_enforced {
-        println!("  Salary cap: {}   Tax line: {}   Minimum salary: {}", fmt_money(m.cap), if r.luxury_tax { fmt_money(m.tax_line) } else { "none".into() }, fmt_money(m.min_salary));
+        println!(
+            "  Salary cap: {}   Tax line: {}   Minimum salary: {}",
+            fmt_money(m.cap),
+            if r.luxury_tax {
+                fmt_money(m.tax_line)
+            } else {
+                "none".into()
+            },
+            fmt_money(m.min_salary)
+        );
     } else {
-        println!("  No salary cap. Typical team payroll: {}   Average salary: {}", fmt_money(m.cap), fmt_money(m.avg_salary));
+        println!(
+            "  No salary cap. Typical team payroll: {}   Average salary: {}",
+            fmt_money(m.cap),
+            fmt_money(m.avg_salary)
+        );
     }
-    println!("  Style: pace {:.0} possessions, {:.0}% of shots are threes, league scoring {:.1} ppg", st.pace, st.three_rate * 100.0, st.ppg);
-    println!("  Roster: {} max ({} dress)   Two-way slots: {}", r.roster_max, r.active_max, r.two_way_slots);
+    println!(
+        "  Style: pace {:.0} possessions, {:.0}% of shots are threes, league scoring {:.1} ppg",
+        st.pace,
+        st.three_rate * 100.0,
+        st.ppg
+    );
+    println!(
+        "  Roster: {} max ({} dress)   Two-way slots: {}",
+        r.roster_max, r.active_max, r.two_way_slots
+    );
     println!("\nRule changes up to {year}:");
     let mut tl = c.rule_timeline.clone();
     tl.sort_by_key(|x| x.year);
@@ -380,7 +508,8 @@ fn cmd_rules(s: &mut Session, a: &[&str]) {
 
 fn cmd_settings(s: &mut Session, a: &[&str]) {
     let content = Content::default();
-    let mut tmp_settings = hardwood_dynasty::settings::Settings::with_defs(content.settings.clone());
+    let mut tmp_settings =
+        hardwood_dynasty::settings::Settings::with_defs(content.settings.clone());
     let settings = match &mut s.league {
         Some(l) => &mut l.settings,
         None => &mut tmp_settings,
@@ -497,17 +626,25 @@ fn cmd_mod(s: &mut Session, a: &[&str]) {
         Some("tuning") => {
             println!("Game-engine tuning parameters (set in a mod's \"tuning\" section):");
             for t in hardwood_dynasty::game::default_tuning() {
-                println!("  {:<34} default {:<7} range {}..{}  {}", t.key, t.default, t.min, t.max, t.description);
+                println!(
+                    "  {:<34} default {:<7} range {}..{}  {}",
+                    t.key, t.default, t.min, t.max, t.description
+                );
             }
         }
         Some("list") => {
             let _ = load_mods_from_dir(&mut Content::default(), std::path::Path::new(&s.mods_dir));
             println!("Mods folder: {}", s.mods_dir);
             for t in load_mod_texts(&s.mods_dir) {
-                println!("  {}", t.chars().take(80).collect::<String>().replace('\n', " "));
+                println!(
+                    "  {}",
+                    t.chars().take(80).collect::<String>().replace('\n', " ")
+                );
             }
         }
-        _ => println!("Usage: mod export-defaults [dir] | mod check <file> | mod tuning | mod list"),
+        _ => {
+            println!("Usage: mod export-defaults [dir] | mod check <file> | mod tuning | mod list")
+        }
     }
 }
 
@@ -602,7 +739,11 @@ fn league_command(s: &mut Session, l: &mut League, cmd: &str, a: &[&str]) -> boo
                     println!("You're not on the clock.");
                 } else {
                     match l.make_pick(id) {
-                        Some(r) => println!("You select {} with pick #{}.", pname(l, r.player), r.overall),
+                        Some(r) => println!(
+                            "You select {} with pick #{}.",
+                            pname(l, r.player),
+                            r.overall
+                        ),
                         None => println!("That pick failed."),
                     }
                 }
@@ -611,7 +752,11 @@ fn league_command(s: &mut Session, l: &mut League, cmd: &str, a: &[&str]) -> boo
         "autopick" => {
             if l.user_on_clock() {
                 if let Some(r) = l.draft_next_ai() {
-                    println!("Your staff selects {} with pick #{}.", pname(l, r.player), r.overall);
+                    println!(
+                        "Your staff selects {} with pick #{}.",
+                        pname(l, r.player),
+                        r.overall
+                    );
                 }
             } else {
                 println!("You're not on the clock.");
@@ -634,14 +779,20 @@ fn league_command(s: &mut Session, l: &mut League, cmd: &str, a: &[&str]) -> boo
                     println!("He isn't on your team.");
                 } else {
                     l.waive_player(id, t);
-                    println!("{} waived. Guaranteed money stays on your books.", pname(l, id));
+                    println!(
+                        "{} waived. Guaranteed money stays on your books.",
+                        pname(l, id)
+                    );
                 }
             }
         }
         "trade" => cmd_trade(l, a),
         "minutes" => {
             if a.len() >= 2 {
-                if let (Some(id), Ok(m)) = (l.find_player(&a[..a.len() - 1].join(" ")), a[a.len() - 1].parse::<f64>()) {
+                if let (Some(id), Ok(m)) = (
+                    l.find_player(&a[..a.len() - 1].join(" ")),
+                    a[a.len() - 1].parse::<f64>(),
+                ) {
                     match l.set_minutes(id, m) {
                         Ok(m) => println!("{m}"),
                         Err(e) => println!("{e}"),
@@ -652,7 +803,11 @@ fn league_command(s: &mut Session, l: &mut League, cmd: &str, a: &[&str]) -> boo
             }
         }
         "starters" => {
-            let names: Vec<String> = a.join(" ").split(',').map(|x| x.trim().to_string()).collect();
+            let names: Vec<String> = a
+                .join(" ")
+                .split(',')
+                .map(|x| x.trim().to_string())
+                .collect();
             let ids: Vec<PlayerId> = names.iter().filter_map(|n| l.find_player(n)).collect();
             match l.set_starters(ids) {
                 Ok(m) => println!("{m}"),
@@ -676,20 +831,37 @@ fn league_command(s: &mut Session, l: &mut League, cmd: &str, a: &[&str]) -> boo
         "focus" => {
             if a.len() >= 2 {
                 let f = a[a.len() - 1];
-                if let (Some(id), Some(focus)) = (l.find_player(&a[..a.len() - 1].join(" ")), DevFocus::parse(f)) {
+                if let (Some(id), Some(focus)) = (
+                    l.find_player(&a[..a.len() - 1].join(" ")),
+                    DevFocus::parse(f),
+                ) {
                     match l.set_dev_focus(id, focus) {
                         Ok(m) => println!("{m}"),
                         Err(e) => println!("{e}"),
                     }
                 } else {
-                    println!("Usage: focus <player> <{}>", DevFocus::ALL.iter().map(|f| f.name().split_whitespace().next().unwrap().to_lowercase()).collect::<Vec<_>>().join("|"));
+                    println!(
+                        "Usage: focus <player> <{}>",
+                        DevFocus::ALL
+                            .iter()
+                            .map(|f| f.name().split_whitespace().next().unwrap().to_lowercase())
+                            .collect::<Vec<_>>()
+                            .join("|")
+                    );
                 }
             } else if let Some(pid) = l.user.player {
                 if let Some(f) = a.first().and_then(|x| DevFocus::parse(x)) {
                     let _ = l.set_dev_focus(pid, f);
                     println!("Your practice focus: {}.", f.name());
                 } else {
-                    println!("Usage: focus <skill>  ({})", DevFocus::ALL.iter().map(|f| f.name()).collect::<Vec<_>>().join(", "));
+                    println!(
+                        "Usage: focus <skill>  ({})",
+                        DevFocus::ALL
+                            .iter()
+                            .map(|f| f.name())
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    );
                 }
             }
         }
@@ -720,7 +892,9 @@ fn league_command(s: &mut Session, l: &mut League, cmd: &str, a: &[&str]) -> boo
                 if !(l.user.has(Role::Owner)) {
                     println!("Only the Owner sets the budget.");
                 } else {
-                    let v = parse_money(a[1]).map(|m| m as f64).or_else(|| a[1].parse::<f64>().ok());
+                    let v = parse_money(a[1])
+                        .map(|m| m as f64)
+                        .or_else(|| a[1].parse::<f64>().ok());
                     match v {
                         Some(v) => match l.set_budget(t, a[0], v) {
                             Ok(m) => println!("{m}"),
@@ -769,7 +943,12 @@ fn league_command(s: &mut Session, l: &mut League, cmd: &str, a: &[&str]) -> boo
             if let Some(pid) = l.user.player {
                 let name = format!("Agent {}", l.p(pid).last);
                 if let Some(life) = l.pm(pid).life.as_mut() {
-                    life.agent = Some(hardwood_dynasty::life::AgentInfo { name: name.clone(), skill: 55.0 + (life.stat("reputation") * 0.3), fee_pct: 4.0, trust: 60.0 });
+                    life.agent = Some(hardwood_dynasty::life::AgentInfo {
+                        name: name.clone(),
+                        skill: 55.0 + (life.stat("reputation") * 0.3),
+                        fee_pct: 4.0,
+                        trust: 60.0,
+                    });
                     println!("You hire {name}: 4% fee, helps negotiate bigger contracts and endorsements.");
                 }
             } else {
@@ -780,7 +959,11 @@ fn league_command(s: &mut Session, l: &mut League, cmd: &str, a: &[&str]) -> boo
         "recruit" => {
             if a.len() >= 1 {
                 let pts = a.last().and_then(|x| x.parse::<f64>().ok()).unwrap_or(10.0);
-                let name = if a.last().and_then(|x| x.parse::<f64>().ok()).is_some() { a[..a.len() - 1].join(" ") } else { a.join(" ") };
+                let name = if a.last().and_then(|x| x.parse::<f64>().ok()).is_some() {
+                    a[..a.len() - 1].join(" ")
+                } else {
+                    a.join(" ")
+                };
                 if let Some(id) = l.find_player(&name) {
                     match l.college_offer(id, pts) {
                         Ok(m) => println!("{m}"),
@@ -805,7 +988,10 @@ fn league_command(s: &mut Session, l: &mut League, cmd: &str, a: &[&str]) -> boo
         "records" => {
             for (k, name) in hardwood_dynasty::records::SINGLE_GAME_CATS {
                 match l.records.single_game.get(*k) {
-                    Some(r) => println!("  {:<22} {:>3.0}  {} ({}, {})", name, r.value, r.holder, r.team, r.season),
+                    Some(r) => println!(
+                        "  {:<22} {:>3.0}  {} ({}, {})",
+                        name, r.value, r.holder, r.team, r.season
+                    ),
                     None => println!("  {:<22} -", name),
                 }
             }
@@ -820,7 +1006,14 @@ fn league_command(s: &mut Session, l: &mut League, cmd: &str, a: &[&str]) -> boo
         }
         "setauto" => {
             l.user.auto_decisions = a.first().map(|x| *x == "on").unwrap_or(true);
-            println!("Auto-decisions: {}.", if l.user.auto_decisions { "ON (the game decides small choices for you)" } else { "OFF" });
+            println!(
+                "Auto-decisions: {}.",
+                if l.user.auto_decisions {
+                    "ON (the game decides small choices for you)"
+                } else {
+                    "OFF"
+                }
+            );
         }
         "delegate" => {
             if let (Some(what), Some(v)) = (a.first(), a.get(1)) {
@@ -857,55 +1050,126 @@ fn cmd_league(l: &League) {
         println!("\n{} Conference", l.conference_name(conf));
         for t in l.standings(Some(conf)) {
             let tm = l.team(t);
-            println!("  {:<4} {:<26} rating {:>4.1}  payroll {:>8}  {}", tm.abbr, tm.name(), l.team_rating_full_health(t), fmt_money(l.payroll(t)), tm.direction.name());
+            println!(
+                "  {:<4} {:<26} rating {:>4.1}  payroll {:>8}  {}",
+                tm.abbr,
+                tm.name(),
+                l.team_rating_full_health(t),
+                fmt_money(l.payroll(t)),
+                tm.direction.name()
+            );
         }
     }
 }
 
 fn cmd_status(l: &League) {
     println!("{}", l.date_string());
-    println!("Cap {} | tax line {} | min salary {}", if l.money.cap_enforced { fmt_money(l.money.cap) } else { "none".into() }, if l.rules.luxury_tax { fmt_money(l.money.tax_line) } else { "none".into() }, fmt_money(l.money.min_salary));
+    println!(
+        "Cap {} | tax line {} | min salary {}",
+        if l.money.cap_enforced {
+            fmt_money(l.money.cap)
+        } else {
+            "none".into()
+        },
+        if l.rules.luxury_tax {
+            fmt_money(l.money.tax_line)
+        } else {
+            "none".into()
+        },
+        fmt_money(l.money.min_salary)
+    );
     if l.user.roles.is_empty() {
         println!("You have no job yet. Try 'role gm <team>' or 'create-player'.");
     } else {
-        println!("Your roles: {}", l.user.roles.iter().map(|r| r.name()).collect::<Vec<_>>().join(", "));
+        println!(
+            "Your roles: {}",
+            l.user
+                .roles
+                .iter()
+                .map(|r| r.name())
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
     }
     if let Some(t) = l.user.team {
         let tm = l.team(t);
         let r = &tm.record;
-        println!("{}: {}-{}  rating {:.1}  payroll {}  owner approval {:.0}/100", tm.name(), r.w, r.l, l.team_rating_full_health(t), fmt_money(l.payroll(t)), tm.owner.approval);
+        println!(
+            "{}: {}-{}  rating {:.1}  payroll {}  owner approval {:.0}/100",
+            tm.name(),
+            r.w,
+            r.l,
+            l.team_rating_full_health(t),
+            fmt_money(l.payroll(t)),
+            tm.owner.approval
+        );
         println!("Owner mandate: {}", tm.owner.mandate);
-        let hurt: Vec<String> = tm.roster.iter().filter(|&&id| l.p(id).is_injured()).map(|&id| format!("{} ({})", l.p(id).name(), l.p(id).injury.as_ref().map(|i| i.name.clone()).unwrap_or_default())).collect();
+        let hurt: Vec<String> = tm
+            .roster
+            .iter()
+            .filter(|&&id| l.p(id).is_injured())
+            .map(|&id| {
+                format!(
+                    "{} ({})",
+                    l.p(id).name(),
+                    l.p(id)
+                        .injury
+                        .as_ref()
+                        .map(|i| i.name.clone())
+                        .unwrap_or_default()
+                )
+            })
+            .collect();
         if !hurt.is_empty() {
             println!("Injured: {}", hurt.join("; "));
         }
-        let exp: Vec<String> = tm.roster.iter().filter(|&&id| l.p(id).flags.contains("expiring")).map(|&id| l.p(id).name()).collect();
+        let exp: Vec<String> = tm
+            .roster
+            .iter()
+            .filter(|&&id| l.p(id).flags.contains("expiring"))
+            .map(|&id| l.p(id).name())
+            .collect();
         if !exp.is_empty() {
             println!("Expiring contracts: {}", exp.join(", "));
         }
     }
     if let Some(c) = l.user.college {
         let co = &l.colleges[c as usize];
-        println!("{} {}: {}-{}  prestige {:.0}", co.name, co.nickname, co.record.w, co.record.l, co.prestige);
+        println!(
+            "{} {}: {}-{}  prestige {:.0}",
+            co.name, co.nickname, co.record.w, co.record.l, co.prestige
+        );
     }
     if let Some(pid) = l.user.player {
         let p = l.p(pid);
-        println!("Your player: {} ({} ovr, age {}) - {}", p.name(), rating(l, p.ovr as f64), l.age_of(pid), match &p.affiliation {
-            Affiliation::HighSchool => format!("high school ({})", p.origin.school),
-            Affiliation::College(c) => format!("college ({})", l.colleges[*c as usize].name),
-            Affiliation::Nba(t) => format!("pro ({})", l.team(*t).name()),
-            Affiliation::Overseas(c) => format!("overseas ({})", l.clubs[*c as usize].name),
-            Affiliation::FreeAgent => "free agent".to_string(),
-            _ => "retired".to_string(),
-        });
+        println!(
+            "Your player: {} ({} ovr, age {}) - {}",
+            p.name(),
+            rating(l, p.ovr as f64),
+            l.age_of(pid),
+            match &p.affiliation {
+                Affiliation::HighSchool => format!("high school ({})", p.origin.school),
+                Affiliation::College(c) => format!("college ({})", l.colleges[*c as usize].name),
+                Affiliation::Nba(t) => format!("pro ({})", l.team(*t).name()),
+                Affiliation::Overseas(c) => format!("overseas ({})", l.clubs[*c as usize].name),
+                Affiliation::FreeAgent => "free agent".to_string(),
+                _ => "retired".to_string(),
+            }
+        );
     }
     if !l.decisions.is_empty() {
-        println!("*** {} decision(s) waiting: type 'decisions' ***", l.decisions.len());
+        println!(
+            "*** {} decision(s) waiting: type 'decisions' ***",
+            l.decisions.len()
+        );
     }
     if let Some(pid) = l.user.player {
         if let Some(life) = &l.p(pid).life {
             if !life.pending.is_empty() {
-                println!("*** {} life event(s) waiting: type 'events' ***", life.pending.len());
+                println!(
+                    "*** {} life event(s) waiting: type 'events' ***",
+                    life.pending.len()
+                );
             }
         }
     }
@@ -935,11 +1199,30 @@ fn cmd_advance(l: &mut League, a: &[&str]) {
     let t0 = std::time::Instant::now();
     let rep = l.advance(goal);
     // show the most interesting recent lines
-    let user_lines: Vec<&String> = rep.lines.iter().rev().take(14).collect::<Vec<_>>().into_iter().rev().collect();
+    let user_lines: Vec<&String> = rep
+        .lines
+        .iter()
+        .rev()
+        .take(14)
+        .collect::<Vec<_>>()
+        .into_iter()
+        .rev()
+        .collect();
     for line in user_lines {
         println!("  {line}");
     }
-    let news: Vec<&NewsItem> = l.news.iter().rev().filter(|n| matches!(n.kind.as_str(), "major" | "retirement" | "trade" | "story" | "user")).take(8).collect();
+    let news: Vec<&NewsItem> = l
+        .news
+        .iter()
+        .rev()
+        .filter(|n| {
+            matches!(
+                n.kind.as_str(),
+                "major" | "retirement" | "trade" | "story" | "user"
+            )
+        })
+        .take(8)
+        .collect();
     if !news.is_empty() {
         println!("Headlines:");
         for n in news.iter().rev() {
@@ -949,7 +1232,12 @@ fn cmd_advance(l: &mut League, a: &[&str]) {
     if let Some(s) = rep.stopped {
         println!("\n>>> Stopped: {s}");
     }
-    println!("({} steps in {:.2}s)  Now: {}", rep.steps, t0.elapsed().as_secs_f64(), l.date_string());
+    println!(
+        "({} steps in {:.2}s)  Now: {}",
+        rep.steps,
+        t0.elapsed().as_secs_f64(),
+        l.date_string()
+    );
 }
 
 fn cmd_decisions(l: &League) {
@@ -1010,7 +1298,14 @@ fn cmd_standings(l: &League, a: &[&str]) {
         println!("College top 25 (record, prestige):");
         for (i, c) in l.standings_college().into_iter().take(25).enumerate() {
             let co = &l.colleges[c as usize];
-            println!("  {:>2}. {:<28} {:>2}-{:<2}  prestige {:.0}", i + 1, format!("{} {}", co.name, co.nickname), co.record.w, co.record.l, co.prestige);
+            println!(
+                "  {:>2}. {:<28} {:>2}-{:<2}  prestige {:.0}",
+                i + 1,
+                format!("{} {}", co.name, co.nickname),
+                co.record.w,
+                co.record.l,
+                co.prestige
+            );
         }
         return;
     }
@@ -1021,79 +1316,266 @@ fn cmd_standings(l: &League, a: &[&str]) {
     };
     for c in confs {
         println!("\n{} Conference", l.conference_name(c.unwrap()));
-        println!("  {}  {}  {}  {}  {}  {}", pad("Team", 26), rpad("W", 3), rpad("L", 3), rpad("PCT", 5), rpad("DIFF", 6), "Strk");
+        println!(
+            "  {}  {}  {}  {}  {}  {}",
+            pad("Team", 26),
+            rpad("W", 3),
+            rpad("L", 3),
+            rpad("PCT", 5),
+            rpad("DIFF", 6),
+            "Strk"
+        );
         for t in l.standings(c) {
             let tm = l.team(t);
             let r = &tm.record;
             let mark = if l.is_user_team(t) { "*" } else { " " };
-            println!("{mark} {}  {}  {}  {}  {}  {}", pad(&tm.name(), 26), rpad(&r.w.to_string(), 3), rpad(&r.l.to_string(), 3), rpad(&format!("{:.3}", r.pct()), 5), rpad(&format!("{:+.1}", r.diff_pg()), 6), if r.streak >= 0 { format!("W{}", r.streak) } else { format!("L{}", -r.streak) });
+            println!(
+                "{mark} {}  {}  {}  {}  {}  {}",
+                pad(&tm.name(), 26),
+                rpad(&r.w.to_string(), 3),
+                rpad(&r.l.to_string(), 3),
+                rpad(&format!("{:.3}", r.pct()), 5),
+                rpad(&format!("{:+.1}", r.diff_pg()), 6),
+                if r.streak >= 0 {
+                    format!("W{}", r.streak)
+                } else {
+                    format!("L{}", -r.streak)
+                }
+            );
         }
     }
 }
 
 fn cmd_roster(l: &League, t: TeamId) {
     let tm = l.team(t);
-    println!("{} ({}-{})  Coach: {}  GM: {}", tm.name(), tm.record.w, tm.record.l, l.coach_of(t).map(|c| c.name.clone()).unwrap_or_default(), l.gm_of(t).map(|c| c.name.clone()).unwrap_or_default());
-    println!("{} {} {} {} {} {} {} {}  {}", pad("Player", 22), pad("Pos", 3), rpad("Age", 3), rpad("Ht", 5), rpad("OVR", 3), rpad("POT", 3), rpad("PPG", 5), rpad("Salary", 8), "Status");
+    println!(
+        "{} ({}-{})  Coach: {}  GM: {}",
+        tm.name(),
+        tm.record.w,
+        tm.record.l,
+        l.coach_of(t).map(|c| c.name.clone()).unwrap_or_default(),
+        l.gm_of(t).map(|c| c.name.clone()).unwrap_or_default()
+    );
+    println!(
+        "{} {} {} {} {} {} {} {}  {}",
+        pad("Player", 22),
+        pad("Pos", 3),
+        rpad("Age", 3),
+        rpad("Ht", 5),
+        rpad("OVR", 3),
+        rpad("POT", 3),
+        rpad("PPG", 5),
+        rpad("Salary", 8),
+        "Status"
+    );
     let mut ids = tm.roster.clone();
     ids.sort_by(|&a, &b| l.p(b).ovr.cmp(&l.p(a).ovr));
     for id in ids {
         let p = l.p(id);
-        let st = p.seasons.iter().rev().find(|r| r.season == l.year && r.level == Level::Pro);
+        let st = p
+            .seasons
+            .iter()
+            .rev()
+            .find(|r| r.season == l.year && r.level == Level::Pro);
         let ppg = st.map(|r| r.stats.ppg()).unwrap_or(0.0);
         let status = match &p.injury {
             Some(i) => format!("OUT: {} ({}g)", i.name, i.games_remaining),
-            None => if p.flags.contains("expiring") { "expiring".into() } else { String::new() },
+            None => {
+                if p.flags.contains("expiring") {
+                    "expiring".into()
+                } else {
+                    String::new()
+                }
+            }
         };
-        let pot = if l.settings.bool("progression.hidden_potential") && !l.is_user_team(t) { "?".to_string() } else { rating(l, p.potential as f64) };
-        println!("{} {} {} {} {} {} {} {}  {}", pad(&p.name(), 22), pad(p.position.name(), 3), rpad(&l.age_of(id).to_string(), 3), rpad(&height(l, p), 5), rpad(&rating(l, p.ovr as f64), 3), rpad(&pot, 3), rpad(&format!("{ppg:.1}"), 5), rpad(&fmt_money(p.current_salary()), 8), status);
+        let pot = if l.settings.bool("progression.hidden_potential") && !l.is_user_team(t) {
+            "?".to_string()
+        } else {
+            rating(l, p.potential as f64)
+        };
+        println!(
+            "{} {} {} {} {} {} {} {}  {}",
+            pad(&p.name(), 22),
+            pad(p.position.name(), 3),
+            rpad(&l.age_of(id).to_string(), 3),
+            rpad(&height(l, p), 5),
+            rpad(&rating(l, p.ovr as f64), 3),
+            rpad(&pot, 3),
+            rpad(&format!("{ppg:.1}"), 5),
+            rpad(&fmt_money(p.current_salary()), 8),
+            status
+        );
     }
-    println!("Payroll {}  (cap {}, tax line {})", fmt_money(l.payroll(t)), if l.money.cap_enforced { fmt_money(l.money.cap) } else { "none".into() }, if l.rules.luxury_tax { fmt_money(l.money.tax_line) } else { "none".into() });
+    println!(
+        "Payroll {}  (cap {}, tax line {})",
+        fmt_money(l.payroll(t)),
+        if l.money.cap_enforced {
+            fmt_money(l.money.cap)
+        } else {
+            "none".into()
+        },
+        if l.rules.luxury_tax {
+            fmt_money(l.money.tax_line)
+        } else {
+            "none".into()
+        }
+    );
 }
 
 fn cmd_player(l: &League, id: PlayerId) {
     let p = l.p(id);
-    println!("{}  #{}  {}  {}  {} lb  born {}  {}", p.name(), id, p.position.name(), height(l, p), p.weight_lb, p.birth_year, p.hometown);
-    let arch = l.content.archetypes.iter().find(|a| a.id == p.archetype).map(|a| a.name.clone()).unwrap_or_default();
+    println!(
+        "{}  #{}  {}  {}  {} lb  born {}  {}",
+        p.name(),
+        id,
+        p.position.name(),
+        height(l, p),
+        p.weight_lb,
+        p.birth_year,
+        p.hometown
+    );
+    let arch = l
+        .content
+        .archetypes
+        .iter()
+        .find(|a| a.id == p.archetype)
+        .map(|a| a.name.clone())
+        .unwrap_or_default();
     let (o, pt, sg) = l.scouted_view(l.user.team, id);
-    let hide = l.settings.bool("progression.hidden_potential") && !p.user_controlled && l.user.team.map(|t| p.team_id() != Some(t)).unwrap_or(true) && p.team_id().is_none();
-    println!("Archetype: {arch}   Overall {}   Potential {}{}", if hide { format!("~{o:.0}") } else { rating(l, p.ovr as f64) }, if hide || (l.settings.bool("progression.hidden_potential") && !p.user_controlled && p.team_id().map(|t| !l.is_user_team(t)).unwrap_or(true)) { format!("~{pt:.0}") } else { rating(l, p.potential as f64) }, if sg > 0.0 && hide { format!("  (scouting uncertainty ±{sg:.1})") } else { String::new() });
-    println!("Status: {:?}   {}", p.affiliation, p.contract.as_ref().map(|c| format!("Contract: {} x {}yr", fmt_money(c.salary()), c.years_left())).unwrap_or_default());
+    let hide = l.settings.bool("progression.hidden_potential")
+        && !p.user_controlled
+        && l.user.team.map(|t| p.team_id() != Some(t)).unwrap_or(true)
+        && p.team_id().is_none();
+    println!(
+        "Archetype: {arch}   Overall {}   Potential {}{}",
+        if hide {
+            format!("~{o:.0}")
+        } else {
+            rating(l, p.ovr as f64)
+        },
+        if hide
+            || (l.settings.bool("progression.hidden_potential")
+                && !p.user_controlled
+                && p.team_id().map(|t| !l.is_user_team(t)).unwrap_or(true))
+        {
+            format!("~{pt:.0}")
+        } else {
+            rating(l, p.potential as f64)
+        },
+        if sg > 0.0 && hide {
+            format!("  (scouting uncertainty ±{sg:.1})")
+        } else {
+            String::new()
+        }
+    );
+    println!(
+        "Status: {:?}   {}",
+        p.affiliation,
+        p.contract
+            .as_ref()
+            .map(|c| format!("Contract: {} x {}yr", fmt_money(c.salary()), c.years_left()))
+            .unwrap_or_default()
+    );
     if let Some(i) = &p.injury {
-        println!("INJURY: {}", injury::describe(i, l.settings.bool("injuries.hide_details")));
+        println!(
+            "INJURY: {}",
+            injury::describe(i, l.settings.bool("injuries.hide_details"))
+        );
     }
-    println!("Mood {:.0}/100  Wear {:.0}  Fitness {:.0}  Work ethic {}", p.mood.overall, p.wear, p.fitness, p.hidden.work_ethic);
+    println!(
+        "Mood {:.0}/100  Wear {:.0}  Fitness {:.0}  Work ethic {}",
+        p.mood.overall, p.wear, p.fitness, p.hidden.work_ethic
+    );
     let mut by_fam: Vec<(Family, Vec<(Attr, u8)>)> = vec![];
     for f in Family::ALL {
         by_fam.push((f, p.attrs.iter().filter(|(a, _)| a.family() == f).collect()));
     }
     for (f, v) in by_fam {
-        let parts: Vec<String> = v.iter().map(|(a, r)| format!("{} {}", a.name(), r)).collect();
+        let parts: Vec<String> = v
+            .iter()
+            .map(|(a, r)| format!("{} {}", a.name(), r))
+            .collect();
         println!("  {:<12} {}", f.key(), parts.join(" | "));
     }
     if !p.badges.is_empty() {
-        let b: Vec<String> = p.badges.iter().map(|b| format!("{} ({})", l.content.badges.iter().find(|d| d.id == b.id).map(|d| d.name.clone()).unwrap_or(b.id.clone()), b.tier.name())).collect();
+        let b: Vec<String> = p
+            .badges
+            .iter()
+            .map(|b| {
+                format!(
+                    "{} ({})",
+                    l.content
+                        .badges
+                        .iter()
+                        .find(|d| d.id == b.id)
+                        .map(|d| d.name.clone())
+                        .unwrap_or(b.id.clone()),
+                    b.tier.name()
+                )
+            })
+            .collect();
         println!("Badges: {}", b.join(", "));
     }
-    println!("\n{} {} {} {} {} {} {} {}", pad("Season", 7), pad("Level/Team", 26), rpad("G", 3), rpad("MPG", 5), rpad("PPG", 5), rpad("RPG", 5), rpad("APG", 5), rpad("FG%", 5));
+    println!(
+        "\n{} {} {} {} {} {} {} {}",
+        pad("Season", 7),
+        pad("Level/Team", 26),
+        rpad("G", 3),
+        rpad("MPG", 5),
+        rpad("PPG", 5),
+        rpad("RPG", 5),
+        rpad("APG", 5),
+        rpad("FG%", 5)
+    );
     for r in p.seasons.iter().rev().take(12).rev() {
-        println!("{} {} {} {} {} {} {} {}", pad(&format!("{}", r.season), 7), pad(&format!("{:?} {}", r.level, r.team), 26), rpad(&r.stats.g.to_string(), 3), rpad(&format!("{:.1}", r.stats.mpg()), 5), rpad(&format!("{:.1}", r.stats.ppg()), 5), rpad(&format!("{:.1}", r.stats.rpg()), 5), rpad(&format!("{:.1}", r.stats.apg()), 5), rpad(&format!("{:.3}", r.stats.fg_pct()), 5));
+        println!(
+            "{} {} {} {} {} {} {} {}",
+            pad(&format!("{}", r.season), 7),
+            pad(&format!("{:?} {}", r.level, r.team), 26),
+            rpad(&r.stats.g.to_string(), 3),
+            rpad(&format!("{:.1}", r.stats.mpg()), 5),
+            rpad(&format!("{:.1}", r.stats.ppg()), 5),
+            rpad(&format!("{:.1}", r.stats.rpg()), 5),
+            rpad(&format!("{:.1}", r.stats.apg()), 5),
+            rpad(&format!("{:.3}", r.stats.fg_pct()), 5)
+        );
     }
     if !p.awards.is_empty() {
-        println!("Honors: {}", p.awards.iter().map(|a| format!("{} {}", a.season, a.award)).collect::<Vec<_>>().join("; "));
+        println!(
+            "Honors: {}",
+            p.awards
+                .iter()
+                .map(|a| format!("{} {}", a.season, a.award))
+                .collect::<Vec<_>>()
+                .join("; ")
+        );
     }
     if !p.injury_history.is_empty() {
-        println!("Injury history: {}", p.injury_history.iter().map(|i| format!("{} {} ({}g)", i.season, i.name, i.games_missed)).collect::<Vec<_>>().join("; "));
+        println!(
+            "Injury history: {}",
+            p.injury_history
+                .iter()
+                .map(|i| format!("{} {} ({}g)", i.season, i.name, i.games_missed))
+                .collect::<Vec<_>>()
+                .join("; ")
+        );
     }
     if let Some(d) = &p.draft {
-        println!("Drafted: {} round {} pick {} by {}", d.year, d.round, d.pick, d.team);
+        println!(
+            "Drafted: {} round {} pick {} by {}",
+            d.year, d.round, d.pick, d.team
+        );
     }
 }
 
 fn cmd_box(l: &League, a: &[&str]) {
     let want_pbp = a.first() == Some(&"pbp");
     let bs = if let Some(u) = l.user.team {
-        l.box_log.iter().rev().find(|b| b.home.team == u || b.away.team == u).or(l.box_log.last())
+        l.box_log
+            .iter()
+            .rev()
+            .find(|b| b.home.team == u || b.away.team == u)
+            .or(l.box_log.last())
     } else {
         l.box_log.last()
     };
@@ -1101,14 +1583,59 @@ fn cmd_box(l: &League, a: &[&str]) {
         println!("No games played yet.");
         return;
     };
-    println!("{} {} @ {} {}{}", bs.away.name, bs.away.pts, bs.home.name, bs.home.pts, if bs.overtimes > 0 { format!(" ({}OT)", bs.overtimes) } else { String::new() });
-    println!("Periods (home-away): {}", bs.periods.iter().map(|(h, a)| format!("{h}-{a}")).collect::<Vec<_>>().join("  "));
+    println!(
+        "{} {} @ {} {}{}",
+        bs.away.name,
+        bs.away.pts,
+        bs.home.name,
+        bs.home.pts,
+        if bs.overtimes > 0 {
+            format!(" ({}OT)", bs.overtimes)
+        } else {
+            String::new()
+        }
+    );
+    println!(
+        "Periods (home-away): {}",
+        bs.periods
+            .iter()
+            .map(|(h, a)| format!("{h}-{a}"))
+            .collect::<Vec<_>>()
+            .join("  ")
+    );
     for tb in [&bs.away, &bs.home] {
         println!("\n{}", tb.name);
-        println!("{} {} {} {} {} {} {} {} {} {} {}", pad("Player", 18), rpad("MIN", 4), rpad("PTS", 3), rpad("REB", 3), rpad("AST", 3), rpad("STL", 3), rpad("BLK", 3), rpad("TO", 2), rpad("FG", 6), rpad("3P", 5), rpad("+/-", 4));
+        println!(
+            "{} {} {} {} {} {} {} {} {} {} {}",
+            pad("Player", 18),
+            rpad("MIN", 4),
+            rpad("PTS", 3),
+            rpad("REB", 3),
+            rpad("AST", 3),
+            rpad("STL", 3),
+            rpad("BLK", 3),
+            rpad("TO", 2),
+            rpad("FG", 6),
+            rpad("3P", 5),
+            rpad("+/-", 4)
+        );
         for p in tb.players.iter().filter(|p| p.stats.g > 0) {
             let s = &p.stats;
-            println!("{} {} {} {} {} {} {} {} {} {} {}{}", pad(&p.name, 18), rpad(&format!("{:.0}", s.min), 4), rpad(&s.pts.to_string(), 3), rpad(&s.reb().to_string(), 3), rpad(&s.ast.to_string(), 3), rpad(&s.stl.to_string(), 3), rpad(&s.blk.to_string(), 3), rpad(&s.tov.to_string(), 2), rpad(&format!("{}-{}", s.fgm, s.fga), 6), rpad(&format!("{}-{}", s.tpm, s.tpa), 5), rpad(&format!("{:+}", s.plus_minus), 4), if p.injured_in_game { "  (injured)" } else { "" });
+            println!(
+                "{} {} {} {} {} {} {} {} {} {} {}{}",
+                pad(&p.name, 18),
+                rpad(&format!("{:.0}", s.min), 4),
+                rpad(&s.pts.to_string(), 3),
+                rpad(&s.reb().to_string(), 3),
+                rpad(&s.ast.to_string(), 3),
+                rpad(&s.stl.to_string(), 3),
+                rpad(&s.blk.to_string(), 3),
+                rpad(&s.tov.to_string(), 2),
+                rpad(&format!("{}-{}", s.fgm, s.fga), 6),
+                rpad(&format!("{}-{}", s.tpm, s.tpa), 5),
+                rpad(&format!("{:+}", s.plus_minus), 4),
+                if p.injured_in_game { "  (injured)" } else { "" }
+            );
         }
     }
     if want_pbp {
@@ -1121,9 +1648,21 @@ fn cmd_box(l: &League, a: &[&str]) {
 }
 
 fn cmd_news(l: &League, a: &[&str]) {
-    let n = a.first().and_then(|x| x.parse::<usize>().ok()).unwrap_or(15);
+    let n = a
+        .first()
+        .and_then(|x| x.parse::<usize>().ok())
+        .unwrap_or(15);
     let kind = a.get(1).copied();
-    for item in l.news.iter().rev().filter(|i| kind.map(|k| i.kind == k).unwrap_or(true)).take(n).collect::<Vec<_>>().into_iter().rev() {
+    for item in l
+        .news
+        .iter()
+        .rev()
+        .filter(|i| kind.map(|k| i.kind == k).unwrap_or(true))
+        .take(n)
+        .collect::<Vec<_>>()
+        .into_iter()
+        .rev()
+    {
         println!("  [{} d{}] {}", item.season, item.day, item.text);
     }
 }
@@ -1140,11 +1679,35 @@ fn cmd_story(l: &League) {
 }
 
 fn cmd_awards(l: &League, a: &[&str]) {
-    let year = a.first().and_then(|y| y.parse::<i32>().ok()).unwrap_or_else(|| if l.phase >= Phase::PostSeason || l.phase == Phase::Playoffs { l.year } else { l.year - 1 });
+    let year = a
+        .first()
+        .and_then(|y| y.parse::<i32>().ok())
+        .unwrap_or_else(|| {
+            if l.phase >= Phase::PostSeason || l.phase == Phase::Playoffs {
+                l.year
+            } else {
+                l.year - 1
+            }
+        });
     let mut any = false;
     for aw in l.awards.iter().filter(|x| x.season == year) {
         any = true;
-        let names: Vec<String> = aw.winners.iter().take(15).map(|(id, t)| format!("{}{}", pname(l, *id), if aw.winners.len() > 1 { format!(" [{}]", t + 1) } else { String::new() })).collect();
+        let names: Vec<String> = aw
+            .winners
+            .iter()
+            .take(15)
+            .map(|(id, t)| {
+                format!(
+                    "{}{}",
+                    pname(l, *id),
+                    if aw.winners.len() > 1 {
+                        format!(" [{}]", t + 1)
+                    } else {
+                        String::new()
+                    }
+                )
+            })
+            .collect();
         println!("  {:<30} {}", aw.award, names.join(", "));
     }
     if !any {
@@ -1153,9 +1716,23 @@ fn cmd_awards(l: &League, a: &[&str]) {
 }
 
 fn cmd_history(l: &League) {
-    println!("{} {} {} {} {}", pad("Season", 7), pad("Champion", 26), pad("Runner-up", 26), pad("MVP", 20), "Finals MVP");
+    println!(
+        "{} {} {} {} {}",
+        pad("Season", 7),
+        pad("Champion", 26),
+        pad("Runner-up", 26),
+        pad("MVP", 20),
+        "Finals MVP"
+    );
     for h in l.history.iter().rev().take(25).rev() {
-        println!("{} {} {} {} {}", pad(&h.season.to_string(), 7), pad(&h.champion, 26), pad(&h.runner_up, 26), pad(&h.mvp, 20), h.finals_mvp);
+        println!(
+            "{} {} {} {} {}",
+            pad(&h.season.to_string(), 7),
+            pad(&h.champion, 26),
+            pad(&h.runner_up, 26),
+            pad(&h.mvp, 20),
+            h.finals_mvp
+        );
     }
     if l.history.is_empty() {
         println!("(No completed seasons yet.)");
@@ -1165,12 +1742,19 @@ fn cmd_history(l: &League) {
 fn cmd_leaders(l: &League) {
     let mut c = l.award_candidates(false);
     c.retain(|x| x.games as f64 >= l.day.min(l.games_this_season as u32) as f64 * 0.4);
-    let show = |title: &str, f: &dyn Fn(&hardwood_dynasty::awards::Candidate) -> f64, c: &Vec<hardwood_dynasty::awards::Candidate>| {
+    let show = |title: &str,
+                f: &dyn Fn(&hardwood_dynasty::awards::Candidate) -> f64,
+                c: &Vec<hardwood_dynasty::awards::Candidate>| {
         let mut v: Vec<&hardwood_dynasty::awards::Candidate> = c.iter().collect();
         v.sort_by(|a, b| f(b).partial_cmp(&f(a)).unwrap());
         println!("{title}:");
         for x in v.iter().take(5) {
-            println!("   {:<22} {:<5} {:.1}", pname(l, x.id), l.team(x.team).abbr, f(x));
+            println!(
+                "   {:<22} {:<5} {:.1}",
+                pname(l, x.id),
+                l.team(x.team).abbr,
+                f(x)
+            );
         }
     };
     show("Points", &|x| x.ppg, &c);
@@ -1182,12 +1766,20 @@ fn cmd_leaders(l: &League) {
 
 fn cmd_schedule(l: &League, a: &[&str]) {
     let Some(t) = team_arg(l, a) else { return };
-    let mut games: Vec<&Fixture> = l.schedule.iter().filter(|f| f.home == t || f.away == t).collect();
+    let mut games: Vec<&Fixture> = l
+        .schedule
+        .iter()
+        .filter(|f| f.home == t || f.away == t)
+        .collect();
     games.sort_by_key(|f| f.day);
     let upcoming: Vec<&&Fixture> = games.iter().filter(|f| !f.done).take(10).collect();
     println!("Next games for {}:", l.team(t).name());
     for f in upcoming {
-        let (opp, at) = if f.home == t { (f.away, "vs") } else { (f.home, "@") };
+        let (opp, at) = if f.home == t {
+            (f.away, "vs")
+        } else {
+            (f.home, "@")
+        };
         println!("  day {:>3}  {at} {}", f.day, l.team(opp).name());
     }
 }
@@ -1200,30 +1792,81 @@ fn cmd_draftboard(l: &League) {
     if !d.lottery_text.is_empty() {
         println!("{}", d.lottery_text);
     }
-    println!("Draft {} - pick {} of {}.  Prospects shown as YOUR scouts see them (~ = estimate).", d.year, d.next + 1, d.order.len());
+    println!(
+        "Draft {} - pick {} of {}.  Prospects shown as YOUR scouts see them (~ = estimate).",
+        d.year,
+        d.next + 1,
+        d.order.len()
+    );
     if let Some(s) = d.order.get(d.next) {
-        println!("On the clock: {} (pick #{})", l.team(s.team).name(), s.overall);
+        println!(
+            "On the clock: {} (pick #{})",
+            l.team(s.team).name(),
+            s.overall
+        );
     }
-    println!("{} {} {} {} {} {}  {}", pad("Prospect", 22), pad("Pos", 3), rpad("Age", 3), rpad("Ht", 5), rpad("~OVR", 5), rpad("~POT", 5), "From");
+    println!(
+        "{} {} {} {} {} {}  {}",
+        pad("Prospect", 22),
+        pad("Pos", 3),
+        rpad("Age", 3),
+        rpad("Ht", 5),
+        rpad("~OVR", 5),
+        rpad("~POT", 5),
+        "From"
+    );
     for (id, o, pt) in l.draft_board(l.user.team, 30) {
         let p = l.p(id);
-        println!("{} {} {} {} {} {}  {}", pad(&p.name(), 22), pad(p.position.name(), 3), rpad(&(l.year + 1 - p.birth_year).to_string(), 3), rpad(&height(l, p), 5), rpad(&format!("{o:.0}"), 5), rpad(&format!("{pt:.0}"), 5), p.origin.school);
+        println!(
+            "{} {} {} {} {} {}  {}",
+            pad(&p.name(), 22),
+            pad(p.position.name(), 3),
+            rpad(&(l.year + 1 - p.birth_year).to_string(), 3),
+            rpad(&height(l, p), 5),
+            rpad(&format!("{o:.0}"), 5),
+            rpad(&format!("{pt:.0}"), 5),
+            p.origin.school
+        );
     }
     hint(l, "Use 'scout <name>' to reduce uncertainty, 'pick <name>' when you're on the clock, or 'autopick'.");
 }
 
 fn cmd_fa(l: &League, a: &[&str]) {
-    let n = a.first().and_then(|x| x.parse::<usize>().ok()).unwrap_or(20);
+    let n = a
+        .first()
+        .and_then(|x| x.parse::<usize>().ok())
+        .unwrap_or(20);
     let mut v = l.free_agents.clone();
     v.sort_by(|&x, &y| l.p(y).ovr.cmp(&l.p(x).ovr));
-    println!("{} {} {} {} {}  {}", pad("Free agent", 22), pad("Pos", 3), rpad("Age", 3), rpad("OVR", 3), rpad("Asks", 9), "Years");
+    println!(
+        "{} {} {} {} {}  {}",
+        pad("Free agent", 22),
+        pad("Pos", 3),
+        rpad("Age", 3),
+        rpad("OVR", 3),
+        rpad("Asks", 9),
+        "Years"
+    );
     for id in v.into_iter().take(n) {
         let p = l.p(id);
         let (ask, yrs) = l.player_ask(id);
-        println!("{} {} {} {} {}  {}", pad(&p.name(), 22), pad(p.position.name(), 3), rpad(&l.age_of(id).to_string(), 3), rpad(&rating(l, p.ovr as f64), 3), rpad(&fmt_money(ask), 9), yrs);
+        println!(
+            "{} {} {} {} {}  {}",
+            pad(&p.name(), 22),
+            pad(p.position.name(), 3),
+            rpad(&l.age_of(id).to_string(), 3),
+            rpad(&rating(l, p.ovr as f64), 3),
+            rpad(&fmt_money(ask), 9),
+            yrs
+        );
     }
     if let Some(t) = l.user.team {
-        println!("Your payroll {} / cap {}.  Mid-level exception left: {}.", fmt_money(l.payroll(t)), fmt_money(l.money.cap), fmt_money((l.mle_amount() - l.team(t).exceptions.mle_used).max(0)));
+        println!(
+            "Your payroll {} / cap {}.  Mid-level exception left: {}.",
+            fmt_money(l.payroll(t)),
+            fmt_money(l.money.cap),
+            fmt_money((l.mle_amount() - l.team(t).exceptions.mle_used).max(0))
+        );
     }
 }
 
@@ -1277,12 +1920,22 @@ fn parse_assets(l: &League, from: TeamId, words: &[&str]) -> Result<Vec<Asset>, 
             if let Ok(year) = y.parse::<i32>() {
                 let (round_s, team_s) = rest.split_once(':').unwrap_or((rest, ""));
                 let round: u8 = round_s.parse().map_err(|_| format!("Bad pick '{part}'"))?;
-                let original = if team_s.is_empty() { from } else { l.find_team(team_s).ok_or(format!("No team '{team_s}'"))? };
-                out.push(Asset::Pick { year, round, original });
+                let original = if team_s.is_empty() {
+                    from
+                } else {
+                    l.find_team(team_s).ok_or(format!("No team '{team_s}'"))?
+                };
+                out.push(Asset::Pick {
+                    year,
+                    round,
+                    original,
+                });
                 continue;
             }
         }
-        let id = l.find_player(part).ok_or(format!("No player matches '{part}'."))?;
+        let id = l
+            .find_player(part)
+            .ok_or(format!("No player matches '{part}'."))?;
         out.push(Asset::Player(id));
     }
     Ok(out)
@@ -1295,8 +1948,15 @@ fn cmd_trade(l: &mut League, a: &[&str]) {
         return;
     }
     let confirm = a.last() == Some(&"confirm");
-    let a: Vec<&str> = if confirm { a[..a.len() - 1].to_vec() } else { a.to_vec() };
-    let (Some(gi), Some(ti)) = (a.iter().position(|x| *x == "give"), a.iter().position(|x| *x == "get")) else {
+    let a: Vec<&str> = if confirm {
+        a[..a.len() - 1].to_vec()
+    } else {
+        a.to_vec()
+    };
+    let (Some(gi), Some(ti)) = (
+        a.iter().position(|x| *x == "give"),
+        a.iter().position(|x| *x == "get"),
+    ) else {
         println!("Usage: trade <team> give <player, player, 2027r1> get <player, ...> [confirm]\n  Picks look like 2027r1 (your own 2027 first-rounder) or 2027r2:BOS.");
         return;
     };
@@ -1316,10 +1976,29 @@ fn cmd_trade(l: &mut League, a: &[&str]) {
         Ok(v) => v,
         Err(e) => return println!("{e}"),
     };
-    let tr = TradeProposal { from: me, to: other, give, get };
+    let tr = TradeProposal {
+        from: me,
+        to: other,
+        give,
+        get,
+    };
     let ev = l.evaluate_trade(&tr);
-    println!("You send: {}", tr.give.iter().map(|x| l.asset_label(x)).collect::<Vec<_>>().join("; "));
-    println!("You get : {}", tr.get.iter().map(|x| l.asset_label(x)).collect::<Vec<_>>().join("; "));
+    println!(
+        "You send: {}",
+        tr.give
+            .iter()
+            .map(|x| l.asset_label(x))
+            .collect::<Vec<_>>()
+            .join("; ")
+    );
+    println!(
+        "You get : {}",
+        tr.get
+            .iter()
+            .map(|x| l.asset_label(x))
+            .collect::<Vec<_>>()
+            .join("; ")
+    );
     for e in &ev.errors {
         println!("  RULE: {e}");
     }
@@ -1327,7 +2006,13 @@ fn cmd_trade(l: &mut League, a: &[&str]) {
     if !ev.accepted && ev.legal && l.settings.bool("difficulty.trade_assist") {
         let add = l.suggest_additions(&tr);
         if !add.is_empty() {
-            println!("  Trade assistant: they'd likely accept if you also add: {}", add.iter().map(|x| l.asset_label(x)).collect::<Vec<_>>().join("; "));
+            println!(
+                "  Trade assistant: they'd likely accept if you also add: {}",
+                add.iter()
+                    .map(|x| l.asset_label(x))
+                    .collect::<Vec<_>>()
+                    .join("; ")
+            );
         }
     }
     if ev.accepted {
@@ -1342,11 +2027,22 @@ fn cmd_trade(l: &mut League, a: &[&str]) {
 
 fn cmd_people(l: &League, a: &[&str]) {
     let role = a.first().and_then(|r| staff_role(r));
-    let mut v: Vec<&Person> = l.people.iter().filter(|p| p.team.is_none() && !p.retired && role.map(|r| p.role == r).unwrap_or(true)).collect();
+    let mut v: Vec<&Person> = l
+        .people
+        .iter()
+        .filter(|p| p.team.is_none() && !p.retired && role.map(|r| p.role == r).unwrap_or(true))
+        .collect();
     v.sort_by(|x, y| y.overall().partial_cmp(&x.overall()).unwrap());
     println!("Available staff (id, role, rating):");
     for p in v.into_iter().take(15) {
-        println!("  #{:<5} {:<22} {:<16} {:>3.0}  asks {}", p.id, p.name, p.role.name(), p.overall(), fmt_money(p.salary));
+        println!(
+            "  #{:<5} {:<22} {:<16} {:>3.0}  asks {}",
+            p.id,
+            p.name,
+            p.role.name(),
+            p.overall(),
+            fmt_money(p.salary)
+        );
     }
     if let Some(t) = l.user.team {
         let tm = l.team(t);
@@ -1359,7 +2055,13 @@ fn cmd_people(l: &League, a: &[&str]) {
         ids.extend(tm.trainer);
         for id in ids {
             let p = l.person(id);
-            println!("  #{:<5} {:<22} {:<16} {:>3.0}", p.id, p.name, p.role.name(), p.overall());
+            println!(
+                "  #{:<5} {:<22} {:<16} {:>3.0}",
+                p.id,
+                p.name,
+                p.role.name(),
+                p.overall()
+            );
         }
     }
 }
@@ -1371,23 +2073,97 @@ fn cmd_money(l: &League) {
     println!("MONEY DASHBOARD - {}", tm.name());
     let f = &tm.finance;
     let last = tm.finance_history.last();
-    let health = |margin: f64| if margin > 0.06 { "GREEN (healthy)" } else if margin > 0.0 { "YELLOW (thin)" } else { "RED (losing money)" };
-    println!("  Payroll now     {:>10}   cap {}   tax line {}   1st apron {}   2nd apron {}", fmt_money(payroll), fmt_money(l.money.cap), if l.rules.luxury_tax { fmt_money(l.money.tax_line) } else { "n/a".into() }, if l.rules.aprons { fmt_money(l.money.first_apron) } else { "n/a".into() }, if l.rules.aprons { fmt_money(l.money.second_apron) } else { "n/a".into() });
-    println!("  Budget target   {:>10}   tax tolerance {}", fmt_money(tm.budget.payroll_target), fmt_money(tm.budget.tax_tolerance));
-    let tax = if l.rules.luxury_tax { l.content.economy.luxury_tax(&l.money, payroll, tm.tax_years >= 3) } else { 0 };
+    let health = |margin: f64| {
+        if margin > 0.06 {
+            "GREEN (healthy)"
+        } else if margin > 0.0 {
+            "YELLOW (thin)"
+        } else {
+            "RED (losing money)"
+        }
+    };
+    println!(
+        "  Payroll now     {:>10}   cap {}   tax line {}   1st apron {}   2nd apron {}",
+        fmt_money(payroll),
+        fmt_money(l.money.cap),
+        if l.rules.luxury_tax {
+            fmt_money(l.money.tax_line)
+        } else {
+            "n/a".into()
+        },
+        if l.rules.aprons {
+            fmt_money(l.money.first_apron)
+        } else {
+            "n/a".into()
+        },
+        if l.rules.aprons {
+            fmt_money(l.money.second_apron)
+        } else {
+            "n/a".into()
+        }
+    );
+    println!(
+        "  Budget target   {:>10}   tax tolerance {}",
+        fmt_money(tm.budget.payroll_target),
+        fmt_money(tm.budget.tax_tolerance)
+    );
+    let tax = if l.rules.luxury_tax {
+        l.content
+            .economy
+            .luxury_tax(&l.money, payroll, tm.tax_years >= 3)
+    } else {
+        0
+    };
     if tax > 0 {
-        println!("  LUXURY TAX if the season ended now: {}{}", fmt_money(tax), if tm.tax_years >= 3 { " (repeater rates!)" } else { "" });
+        println!(
+            "  LUXURY TAX if the season ended now: {}{}",
+            fmt_money(tax),
+            if tm.tax_years >= 3 {
+                " (repeater rates!)"
+            } else {
+                ""
+            }
+        );
     }
-    println!("  This season so far: gate {}  concessions {}  playoffs {}  (home games {}, avg crowd {})", fmt_money(f.gate), fmt_money(f.concessions), fmt_money(f.playoffs), f.home_games, if f.home_games > 0 { f.attendance_total / f.home_games as u64 } else { 0 });
+    println!(
+        "  This season so far: gate {}  concessions {}  playoffs {}  (home games {}, avg crowd {})",
+        fmt_money(f.gate),
+        fmt_money(f.concessions),
+        fmt_money(f.playoffs),
+        f.home_games,
+        if f.home_games > 0 {
+            f.attendance_total / f.home_games as u64
+        } else {
+            0
+        }
+    );
     if let Some(h) = last {
-        println!("  Last season ({}): revenue {} | expenses {} | profit {}  -> {}", h.season, fmt_money(h.revenue()), fmt_money(h.expenses()), fmt_money(h.profit()), health(h.profit() as f64 / h.revenue().max(1) as f64));
+        println!(
+            "  Last season ({}): revenue {} | expenses {} | profit {}  -> {}",
+            h.season,
+            fmt_money(h.revenue()),
+            fmt_money(h.expenses()),
+            fmt_money(h.profit()),
+            health(h.profit() as f64 / h.revenue().max(1) as f64)
+        );
         println!("     revenue: gate {} conc {} local TV {} national TV {} merch {} sponsors {} playoffs {} sharing {}", fmt_money(h.gate), fmt_money(h.concessions), fmt_money(h.local_tv), fmt_money(h.national_tv), fmt_money(h.merchandise), fmt_money(h.sponsors), fmt_money(h.playoffs), fmt_money(h.revenue_sharing));
-        println!("     costs:   payroll {} tax {} staff {} facilities {} marketing {} operations {}", fmt_money(h.payroll), fmt_money(h.luxury_tax), fmt_money(h.staff), fmt_money(h.facilities), fmt_money(h.marketing), fmt_money(h.operations));
+        println!(
+            "     costs:   payroll {} tax {} staff {} facilities {} marketing {} operations {}",
+            fmt_money(h.payroll),
+            fmt_money(h.luxury_tax),
+            fmt_money(h.staff),
+            fmt_money(h.facilities),
+            fmt_money(h.marketing),
+            fmt_money(h.operations)
+        );
     } else {
         println!("  (A full financial statement appears after the first season.)");
     }
     println!("  Fans: hype {:.0}/100, loyalty {:.0}/100, arena {} seats (quality {:.0}), ticket level x{:.2}", tm.hype, tm.fan_loyalty, tm.arena.capacity, tm.arena.quality, tm.budget.ticket_price);
-    println!("  Owner: {}  approval {:.0}/100  mandate: {}", tm.owner.name, tm.owner.approval, tm.owner.mandate);
+    println!(
+        "  Owner: {}  approval {:.0}/100  mandate: {}",
+        tm.owner.name, tm.owner.approval, tm.owner.mandate
+    );
     println!("  Title odds: {:.1}%", l.title_odds_for(t, 0.0) * 100.0);
     hint(l, "Owners: 'chase 20M' previews spending 20M more; 'budget ticket 1.2' sets prices; 'budget facilities 1.5' etc.");
 }
@@ -1400,11 +2176,35 @@ fn cmd_chase(l: &League, a: &[&str]) {
     };
     let p = l.chase_projection(t, extra);
     println!("CHASE MODE: adding {} of salary", fmt_money(extra));
-    println!("  New payroll {}   (tax line {})", fmt_money(p.new_payroll), if l.rules.luxury_tax { fmt_money(p.tax_line) } else { "none".into() });
-    println!("  Luxury tax: {} -> {}  (+{}){}", fmt_money(p.luxury_tax_before), fmt_money(p.luxury_tax_after), fmt_money(p.extra_tax), if p.repeater { "  [repeater rates]" } else { "" });
+    println!(
+        "  New payroll {}   (tax line {})",
+        fmt_money(p.new_payroll),
+        if l.rules.luxury_tax {
+            fmt_money(p.tax_line)
+        } else {
+            "none".into()
+        }
+    );
+    println!(
+        "  Luxury tax: {} -> {}  (+{}){}",
+        fmt_money(p.luxury_tax_before),
+        fmt_money(p.luxury_tax_after),
+        fmt_money(p.extra_tax),
+        if p.repeater { "  [repeater rates]" } else { "" }
+    );
     println!("  TOTAL extra cost: {}", fmt_money(p.total_extra_cost));
-    println!("  Projected profit: {} -> {}", fmt_money(p.profit_before), fmt_money(p.profit_after));
-    println!("  Title odds: {:.1}% -> {:.1}%  (about {:.1} points of odds per $10M)", p.title_odds_before * 100.0, p.title_odds_after * 100.0, (p.title_odds_after - p.title_odds_before) * 100.0 / (extra as f64 / 10_000_000.0).max(0.01));
+    println!(
+        "  Projected profit: {} -> {}",
+        fmt_money(p.profit_before),
+        fmt_money(p.profit_after)
+    );
+    println!(
+        "  Title odds: {:.1}% -> {:.1}%  (about {:.1} points of odds per $10M)",
+        p.title_odds_before * 100.0,
+        p.title_odds_after * 100.0,
+        (p.title_odds_after - p.title_odds_before) * 100.0
+            / (extra as f64 / 10_000_000.0).max(0.01)
+    );
     if !p.apron_warning.is_empty() {
         println!("  WARNING: {}", p.apron_warning);
     }
@@ -1426,10 +2226,16 @@ fn cmd_role(l: &mut League, a: &[&str]) {
     let res = match role {
         Role::CollegeCoach | Role::CollegeAd | Role::CollegeScout => {
             let ql = q.to_lowercase();
-            let c = l.colleges.iter().find(|c| c.name.to_lowercase().contains(&ql) || c.nickname.to_lowercase() == ql).map(|c| c.id);
+            let c = l
+                .colleges
+                .iter()
+                .find(|c| c.name.to_lowercase().contains(&ql) || c.nickname.to_lowercase() == ql)
+                .map(|c| c.id);
             match c {
                 Some(c) => l.take_role(role, None, Some(c)),
-                None => Err(format!("No college matches '{q}'. Try 'standings college'.")),
+                None => Err(format!(
+                    "No college matches '{q}'. Try 'standings college'."
+                )),
             }
         }
         _ => match l.find_team(&q) {
@@ -1469,7 +2275,9 @@ Defaults are used for anything you leave out. Run again with your choices.",
         return;
     }
     for kv in a {
-        let Some((k, v)) = kv.split_once('=') else { continue };
+        let Some((k, v)) = kv.split_once('=') else {
+            continue;
+        };
         match k {
             "name" => {
                 let mut it = v.split_whitespace();
@@ -1501,7 +2309,19 @@ Defaults are used for anything you leave out. Run again with your choices.",
     match l.create_player(&spec) {
         Ok(id) => {
             let p = l.p(id);
-            println!("Created {} ({}, {}, overall {}, potential {}): {}.", p.name(), p.position.name(), p.height_str(), p.ovr, if l.settings.bool("progression.hidden_potential") { "?".to_string() } else { p.potential.to_string() }, talent_label(spec.talent));
+            println!(
+                "Created {} ({}, {}, overall {}, potential {}): {}.",
+                p.name(),
+                p.position.name(),
+                p.height_str(),
+                p.ovr,
+                if l.settings.bool("progression.hidden_potential") {
+                    "?".to_string()
+                } else {
+                    p.potential.to_string()
+                },
+                talent_label(spec.talent)
+            );
             println!("You're a {} now. Use 'life' to see your world, 'allocate ...' to split your time, 'advance month' to live a month.", match spec.start.as_str() { "college" => "college freshman", "pro" => "pro rookie", "overseas" => "pro overseas", _ => "high schooler" });
         }
         Err(e) => println!("Couldn't create the player: {e}"),
@@ -1518,11 +2338,36 @@ fn cmd_life(l: &League) {
         println!("The life sim is off for this player.");
         return;
     };
-    println!("{} - {} (age {}), {}{}", p.name(), life.stage.label(), l.age_of(pid), life.school, if matches!(life.stage, hardwood_dynasty::life::LifeStage::HighSchool | hardwood_dynasty::life::LifeStage::College) { format!(", class {}", life.class_year) } else { String::new() });
+    println!(
+        "{} - {} (age {}), {}{}",
+        p.name(),
+        life.stage.label(),
+        l.age_of(pid),
+        life.school,
+        if matches!(
+            life.stage,
+            hardwood_dynasty::life::LifeStage::HighSchool
+                | hardwood_dynasty::life::LifeStage::College
+        ) {
+            format!(", class {}", life.class_year)
+        } else {
+            String::new()
+        }
+    );
     if !life.eligible {
         println!("*** ACADEMICALLY INELIGIBLE: raise your grades to play! ***");
     }
-    println!("Basketball: overall {}  potential {}  mood {:.0}  fitness {:.0}", rating(l, p.ovr as f64), if p.user_controlled { rating(l, p.potential as f64) } else { "?".into() }, p.mood.overall, p.fitness);
+    println!(
+        "Basketball: overall {}  potential {}  mood {:.0}  fitness {:.0}",
+        rating(l, p.ovr as f64),
+        if p.user_controlled {
+            rating(l, p.potential as f64)
+        } else {
+            "?".into()
+        },
+        p.mood.overall,
+        p.fitness
+    );
     println!("\nLIFE STATS");
     for sd in &l.content.life.stats {
         if sd.id.starts_with("dev_") {
@@ -1530,20 +2375,34 @@ fn cmd_life(l: &League) {
         }
         let v = life.stat(&sd.id);
         let bar = "#".repeat(((v - sd.min) / (sd.max - sd.min).max(1.0) * 20.0) as usize);
-        println!("  {:<16} {:>6.1}  {:<20} {}", sd.name, v, bar, sd.description);
+        println!(
+            "  {:<16} {:>6.1}  {:<20} {}",
+            sd.name, v, bar, sd.description
+        );
     }
     println!("\nTIME BUDGET (per month)");
     for a in &l.content.life.activities {
-        println!("  {:<12} {:>4.0}%   {}", a.id, life.allocation.get(&a.id).copied().unwrap_or(0.0), a.description);
+        println!(
+            "  {:<12} {:>4.0}%   {}",
+            a.id,
+            life.allocation.get(&a.id).copied().unwrap_or(0.0),
+            a.description
+        );
     }
     let f = &life.finance;
     println!("\nMONEY: cash {}  invested {}  assets {}  debt {}  net worth {}  endorsements {}/yr  (taxes paid this year {})", fmt_money(f.cash), fmt_money(f.investments), fmt_money(f.assets), fmt_money(f.debt), fmt_money(f.net_worth()), fmt_money(f.endorsements), fmt_money(f.taxes_this_year));
     if let Some(ag) = &life.agent {
-        println!("Agent: {} (skill {:.0}, fee {}%)", ag.name, ag.skill, ag.fee_pct);
+        println!(
+            "Agent: {} (skill {:.0}, fee {}%)",
+            ag.name, ag.skill, ag.fee_pct
+        );
     }
     println!("\nPEOPLE");
     for r in &life.relationships {
-        println!("  {:<22} {:<10} closeness {:>3.0}  {}", r.name, r.kind, r.closeness, r.note);
+        println!(
+            "  {:<22} {:<10} closeness {:>3.0}  {}",
+            r.name, r.kind, r.closeness, r.note
+        );
     }
     println!("\nRECENT");
     for e in life.timeline.iter().rev().take(8).rev() {
@@ -1554,23 +2413,65 @@ fn cmd_life(l: &League) {
 fn cmd_college(l: &League, a: &[&str]) {
     match a.first().copied() {
         Some("recruits") => {
-            let mut v: Vec<&Player> = l.players.iter().filter(|p| p.affiliation == Affiliation::HighSchool && p.custom.get("class").copied().unwrap_or(0.0) as u8 == 12 && !p.user_controlled).collect();
-            v.sort_by(|x, y| x.custom.get("rank").copied().unwrap_or(999.0).partial_cmp(&y.custom.get("rank").copied().unwrap_or(999.0)).unwrap());
+            let mut v: Vec<&Player> = l
+                .players
+                .iter()
+                .filter(|p| {
+                    p.affiliation == Affiliation::HighSchool
+                        && p.custom.get("class").copied().unwrap_or(0.0) as u8 == 12
+                        && !p.user_controlled
+                })
+                .collect();
+            v.sort_by(|x, y| {
+                x.custom
+                    .get("rank")
+                    .copied()
+                    .unwrap_or(999.0)
+                    .partial_cmp(&y.custom.get("rank").copied().unwrap_or(999.0))
+                    .unwrap()
+            });
             println!("Top high-school seniors (rank, name, position, height, estimated overall/potential):");
             for p in v.into_iter().take(25) {
                 let (o, pt, _) = l.scouted_view(l.user.team, p.id);
-                println!("  #{:<4} {:<22} {:<3} {:<5} ~{:.0}/~{:.0}  {}", p.custom.get("rank").copied().unwrap_or(0.0), p.name(), p.position.name(), p.height_str(), o, pt, p.origin.school);
+                println!(
+                    "  #{:<4} {:<22} {:<3} {:<5} ~{:.0}/~{:.0}  {}",
+                    p.custom.get("rank").copied().unwrap_or(0.0),
+                    p.name(),
+                    p.position.name(),
+                    p.height_str(),
+                    o,
+                    pt,
+                    p.origin.school
+                );
             }
         }
         _ => {
-            let Some(c) = l.user.college.or_else(|| l.standings_college().first().copied()) else {
+            let Some(c) = l
+                .user
+                .college
+                .or_else(|| l.standings_college().first().copied())
+            else {
                 println!("No colleges in this league.");
                 return;
             };
             let co = &l.colleges[c as usize];
-            println!("{} {}  {}-{}  prestige {:.0}  facilities {:.0}  coach {} (recruiting {:.0})", co.name, co.nickname, co.record.w, co.record.l, co.prestige, co.facilities, co.coach.name, co.coach.recruiting);
+            println!(
+                "{} {}  {}-{}  prestige {:.0}  facilities {:.0}  coach {} (recruiting {:.0})",
+                co.name,
+                co.nickname,
+                co.record.w,
+                co.record.l,
+                co.prestige,
+                co.facilities,
+                co.coach.name,
+                co.coach.recruiting
+            );
             if l.nil_available() {
-                println!("NIL budget {} (spent {})", fmt_money(co.nil_budget), fmt_money(co.nil_spent));
+                println!(
+                    "NIL budget {} (spent {})",
+                    fmt_money(co.nil_budget),
+                    fmt_money(co.nil_spent)
+                );
             }
             println!("Recruiting points: {:.0}.  ('college recruits' lists the class; 'recruit <name> <points>' makes an offer.)", co.recruiting_points);
             cmd_college_roster(l, &[]);
@@ -1579,7 +2480,14 @@ fn cmd_college(l: &League, a: &[&str]) {
 }
 
 fn cmd_college_roster(l: &League, a: &[&str]) {
-    let c = if a.is_empty() { l.user.college } else { l.colleges.iter().find(|c| c.name.to_lowercase().contains(&a.join(" ").to_lowercase())).map(|c| c.id) };
+    let c = if a.is_empty() {
+        l.user.college
+    } else {
+        l.colleges
+            .iter()
+            .find(|c| c.name.to_lowercase().contains(&a.join(" ").to_lowercase()))
+            .map(|c| c.id)
+    };
     let Some(c) = c else {
         println!("Which school? e.g. roster college Northern Plains");
         return;
@@ -1590,8 +2498,25 @@ fn cmd_college_roster(l: &League, a: &[&str]) {
     ids.sort_by(|&a, &b| l.p(b).ovr.cmp(&l.p(a).ovr));
     for id in ids {
         let p = l.p(id);
-        let st = p.seasons.iter().rev().find(|r| r.season == l.year && r.level == Level::College);
-        println!("  {:<22} {:<3} class {}  ovr {}  {}", p.name(), p.position.name(), hardwood_dynasty::college::class_of(p), rating(l, p.ovr as f64), st.map(|r| format!("{:.1} ppg {:.1} rpg {:.1} apg", r.stats.ppg(), r.stats.rpg(), r.stats.apg())).unwrap_or_default());
+        let st = p
+            .seasons
+            .iter()
+            .rev()
+            .find(|r| r.season == l.year && r.level == Level::College);
+        println!(
+            "  {:<22} {:<3} class {}  ovr {}  {}",
+            p.name(),
+            p.position.name(),
+            hardwood_dynasty::college::class_of(p),
+            rating(l, p.ovr as f64),
+            st.map(|r| format!(
+                "{:.1} ppg {:.1} rpg {:.1} apg",
+                r.stats.ppg(),
+                r.stats.rpg(),
+                r.stats.apg()
+            ))
+            .unwrap_or_default()
+        );
     }
 }
 
@@ -1600,7 +2525,17 @@ fn cmd_clubs(l: &League) {
     let mut v: Vec<&hardwood_dynasty::overseas::Club> = l.clubs.iter().collect();
     v.sort_by(|a, b| a.tier.cmp(&b.tier).then(a.country.cmp(&b.country)));
     for c in v.into_iter().take(40) {
-        println!("  {}{:<28} {:<4} tier {}  {}-{}  titles {}  EuroLeague titles {}", if c.tier == 1 { "*" } else { " " }, c.name, c.country, c.tier, c.record.w, c.record.l, c.titles.len(), c.euro_titles.len());
+        println!(
+            "  {}{:<28} {:<4} tier {}  {}-{}  titles {}  EuroLeague titles {}",
+            if c.tier == 1 { "*" } else { " " },
+            c.name,
+            c.country,
+            c.tier,
+            c.record.w,
+            c.record.l,
+            c.titles.len(),
+            c.euro_titles.len()
+        );
     }
 }
 
@@ -1613,13 +2548,20 @@ fn cmd_import(l: &mut League, a: &[&str]) {
     match std::fs::read_to_string(a[1]) {
         Ok(text) => match a[0] {
             "roster" => {
-                let res = if a[1].to_lowercase().ends_with(".json") { l.import_roster_json(&text, replace) } else { l.import_roster_csv(&text, replace) };
+                let res = if a[1].to_lowercase().ends_with(".json") {
+                    l.import_roster_json(&text, replace)
+                } else {
+                    l.import_roster_csv(&text, replace)
+                };
                 match res {
                     Ok(r) => println!("{}", r.summary()),
                     Err(e) => println!("{e}"),
                 }
             }
-            "pack" => println!("To start a new league from a year pack, use: newpack {}", a[1]),
+            "pack" => println!(
+                "A year pack starts a brand-new league. Use:  newpack {}",
+                a[1]
+            ),
             _ => println!("Import what? roster or pack."),
         },
         Err(e) => println!("Can't read {}: {e}", a[1]),
@@ -1633,7 +2575,10 @@ fn cmd_export(l: &League, a: &[&str]) {
     }
     let res = match a[0] {
         "roster" => std::fs::write(a[1], l.export_rosters_csv()),
-        "pack" => std::fs::write(a[1], serde_json::to_string_pretty(&l.export_year_pack(&l.name)).unwrap_or_default()),
+        "pack" => std::fs::write(
+            a[1],
+            serde_json::to_string_pretty(&l.export_year_pack(&l.name)).unwrap_or_default(),
+        ),
         _ => return println!("Export what? roster or pack."),
     };
     match res {
@@ -1659,7 +2604,10 @@ fn headless_sim(args: &[String]) {
                 i += 1;
             }
             "--years" => {
-                years = args.get(i + 1).and_then(|x| x.parse().ok()).unwrap_or(years);
+                years = args
+                    .get(i + 1)
+                    .and_then(|x| x.parse().ok())
+                    .unwrap_or(years);
                 i += 1;
             }
             "--seed" => {
@@ -1675,7 +2623,12 @@ fn headless_sim(args: &[String]) {
         i += 1;
     }
     let t0 = std::time::Instant::now();
-    let mut l = match League::new(NewLeagueOptions { year, seed, preset, ..Default::default() }) {
+    let mut l = match League::new(NewLeagueOptions {
+        year,
+        seed,
+        preset,
+        ..Default::default()
+    }) {
         Ok(l) => l,
         Err(e) => return println!("{e}"),
     };
@@ -1683,11 +2636,27 @@ fn headless_sim(args: &[String]) {
     if let Some(s) = rep.stopped {
         println!("stopped: {s}");
     }
-    println!("{:<7} {:<3} {:<26} {:<20} {:>6} {:>8}", "Season", "Tms", "Champion", "MVP", "ppg", "Cap");
+    println!(
+        "{:<7} {:<3} {:<26} {:<20} {:>6} {:>8}",
+        "Season", "Tms", "Champion", "MVP", "ppg", "Cap"
+    );
     for h in &l.history {
-        println!("{:<7} {:<3} {:<26} {:<20} {:>6.1} {:>8}", h.season, h.teams, h.champion, h.mvp, h.avg_ppg, fmt_money(h.cap));
+        println!(
+            "{:<7} {:<3} {:<26} {:<20} {:>6.1} {:>8}",
+            h.season,
+            h.teams,
+            h.champion,
+            h.mvp,
+            h.avg_ppg,
+            fmt_money(h.cap)
+        );
     }
-    println!("Simulated {} seasons in {:.1}s ({} players created).", l.history.len(), t0.elapsed().as_secs_f64(), l.players.len());
+    println!(
+        "Simulated {} seasons in {:.1}s ({} players created).",
+        l.history.len(),
+        t0.elapsed().as_secs_f64(),
+        l.players.len()
+    );
 }
 
 fn calibrate(args: &[String]) {
@@ -1696,19 +2665,39 @@ fn calibrate(args: &[String]) {
     use hardwood_dynasty::rng::Rng;
     let content = Content::default();
     let years: Vec<i32> = args.iter().filter_map(|a| a.parse().ok()).collect();
-    for season in if years.is_empty() { vec![1950, 1985, 2024] } else { years } {
+    for season in if years.is_empty() {
+        vec![1950, 1985, 2024]
+    } else {
+        years
+    } {
         let mut rng = Rng::new(season as u64);
         let teams: Vec<GameTeam> = (0..30)
             .map(|id| {
                 let mut players = vec![];
                 for i in 0..13u32 {
-                    let target = rng.gauss(if i < 5 { 66.0 } else if i < 9 { 56.0 } else { 48.0 }, 5.0).clamp(35.0, 92.0);
+                    let target = rng
+                        .gauss(
+                            if i < 5 {
+                                66.0
+                            } else if i < 9 {
+                                56.0
+                            } else {
+                                48.0
+                            },
+                            5.0,
+                        )
+                        .clamp(35.0, 92.0);
                     let spec = GenSpec::new(season, 26, target, target, OriginKind::College);
                     let p = generate_player(&content, &mut rng, id * 100 + i, &spec, 1.0);
                     players.push(GamePlayer::from_player(&p, &content.badges, 1.0, 0.0));
                 }
                 assign_rotation(&mut players, false, &content.rules(season));
-                GameTeam { id: id as u16, name: format!("T{id}"), players, strategy: Strategy::default() }
+                GameTeam {
+                    id: id as u16,
+                    name: format!("T{id}"),
+                    players,
+                    strategy: Strategy::default(),
+                }
             })
             .collect();
         let refs = Refs::from_players(teams.iter().flat_map(|t| t.players.iter()));
@@ -1736,7 +2725,13 @@ fn calibrate(args: &[String]) {
     }
 }
 
-fn calibrate_ctx(ctx: &mut hardwood_dynasty::game::GameContext, teams: &[hardwood_dynasty::game::GameTeam], rng: &mut hardwood_dynasty::rng::Rng, season: i32, content: &Content) {
+fn calibrate_ctx(
+    ctx: &mut hardwood_dynasty::game::GameContext,
+    teams: &[hardwood_dynasty::game::GameTeam],
+    rng: &mut hardwood_dynasty::rng::Rng,
+    season: i32,
+    content: &Content,
+) {
     use hardwood_dynasty::game::*;
     calibrate(ctx, teams, rng, 150, 3);
     let mut m = LeagueMeasure::default();
@@ -1763,18 +2758,39 @@ fn gen_docs(dir: &str) {
         s += &format!("\n## {name}\n\n| Setting | What it does | Low / Off | High / On | Default |\n|---|---|---|---|---|\n");
         for d in c.settings.iter().filter(|d| d.category() == *cat) {
             let (lo, hi) = match &d.kind {
-                SettingKind::Choice { options } => (String::new(), options.iter().map(|o| format!("`{}`: {}", o.id, o.explain)).collect::<Vec<_>>().join("<br>")),
-                SettingKind::Slider { min, max, .. } => (format!("{min}: {}", d.low_note), format!("{max}: {}", d.high_note)),
+                SettingKind::Choice { options } => (
+                    String::new(),
+                    options
+                        .iter()
+                        .map(|o| format!("`{}`: {}", o.id, o.explain))
+                        .collect::<Vec<_>>()
+                        .join("<br>"),
+                ),
+                SettingKind::Slider { min, max, .. } => (
+                    format!("{min}: {}", d.low_note),
+                    format!("{max}: {}", d.high_note),
+                ),
                 SettingKind::Toggle => (d.low_note.clone(), d.high_note.clone()),
             };
-            s += &format!("| `{}`{} | {} | {} | {} | {} |\n", d.key, if d.advanced { " (advanced)" } else { "" }, d.description, lo, hi, d.default.show());
+            s += &format!(
+                "| `{}`{} | {} | {} | {} | {} |\n",
+                d.key,
+                if d.advanced { " (advanced)" } else { "" },
+                d.description,
+                lo,
+                hi,
+                d.default.show()
+            );
         }
     }
     let _ = std::fs::write(format!("{dir}/SETTINGS.md"), s);
 
     let mut t = String::from("# Engine tuning parameters\n\n_Generated by `hwd gen-docs`._ Set any of these in a mod's `\"tuning\"` section.\n\n| Key | Default | Range | Meaning |\n|---|---|---|---|\n");
     for p in hardwood_dynasty::game::default_tuning() {
-        t += &format!("| `{}` | {} | {} to {} | {} |\n", p.key, p.default, p.min, p.max, p.description);
+        t += &format!(
+            "| `{}` | {} | {} to {} | {} |\n",
+            p.key, p.default, p.min, p.max, p.description
+        );
     }
     let _ = std::fs::write(format!("{dir}/TUNING.md"), t);
 
@@ -1782,19 +2798,41 @@ fn gen_docs(dir: &str) {
     let mut tl = c.rule_timeline.clone();
     tl.sort_by_key(|x| x.year);
     for x in tl {
-        r += &format!("| {} | `{}` | **{}**: {} |\n", x.year, x.id, x.title, x.description);
+        r += &format!(
+            "| {} | `{}` | **{}**: {} |\n",
+            x.year, x.id, x.title, x.description
+        );
     }
     r += "\n## Franchise history\n\n| Franchise | Seasons | Identities |\n|---|---|---|\n";
     for f in &c.franchises {
-        let ids: Vec<String> = f.eras.iter().map(|(y, i)| format!("{y}: {} {}", i.city, i.nickname)).collect();
-        r += &format!("| `{}` | {}-{} | {} |\n", f.key, f.first_year(), f.last_year.map(|y| y.to_string()).unwrap_or_else(|| "now".into()), ids.join("; "));
+        let ids: Vec<String> = f
+            .eras
+            .iter()
+            .map(|(y, i)| format!("{y}: {} {}", i.city, i.nickname))
+            .collect();
+        r += &format!(
+            "| `{}` | {}-{} | {} |\n",
+            f.key,
+            f.first_year(),
+            f.last_year
+                .map(|y| y.to_string())
+                .unwrap_or_else(|| "now".into()),
+            ids.join("; ")
+        );
     }
     let _ = std::fs::write(format!("{dir}/RULES_AND_HISTORY.md"), r);
 
-    let mut ct = String::from("# Content reference (what mods can change)\n\n_Generated by `hwd gen-docs`._\n\n");
+    let mut ct = String::from(
+        "# Content reference (what mods can change)\n\n_Generated by `hwd gen-docs`._\n\n",
+    );
     ct += "## Attributes\n\n| Key | Name | Family |\n|---|---|---|\n";
     for a in Attr::ALL {
-        ct += &format!("| `{}` | {} | `{}` |\n", a.key(), a.name(), a.family().key());
+        ct += &format!(
+            "| `{}` | {} | `{}` |\n",
+            a.key(),
+            a.name(),
+            a.family().key()
+        );
     }
     ct += "\n## Archetypes\n\n";
     for a in &c.archetypes {
@@ -1802,28 +2840,112 @@ fn gen_docs(dir: &str) {
     }
     ct += "\n## Badges\n\n";
     for b in &c.badges {
-        ct += &format!("- `{}` **{}** ({}): {} Requires: {}\n", b.id, b.name, b.category, b.description, b.requires.iter().map(|(k, v)| format!("{k} {v}+")).collect::<Vec<_>>().join(", "));
+        ct += &format!(
+            "- `{}` **{}** ({}): {} Requires: {}\n",
+            b.id,
+            b.name,
+            b.category,
+            b.description,
+            b.requires
+                .iter()
+                .map(|(k, v)| format!("{k} {v}+"))
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
     }
     ct += "\n## Injuries\n\n| Id | Injury | Severity | Median games | Career-ending chance |\n|---|---|---|---|---|\n";
     for i in &c.injuries {
-        ct += &format!("| `{}` | {} | {} | {} | {:.1}% |\n", i.id, i.name, i.severity.name(), i.median_games, i.career_ending * 100.0);
+        ct += &format!(
+            "| `{}` | {} | {} | {} | {:.1}% |\n",
+            i.id,
+            i.name,
+            i.severity.name(),
+            i.median_games,
+            i.career_ending * 100.0
+        );
     }
     ct += "\n## Awards\n\n";
     for a in &c.awards {
-        ct += &format!("- `{}` **{}** (from {}): {:?}\n", a.id, a.name, a.first_year, a.metric);
+        ct += &format!(
+            "- `{}` **{}** (from {}): {:?}\n",
+            a.id, a.name, a.first_year, a.metric
+        );
     }
     ct += "\n## Life stats\n\n";
     for s in &c.life.stats {
-        ct += &format!("- `{}` **{}** ({}-{}): {}\n", s.id, s.name, s.min, s.max, s.description);
+        ct += &format!(
+            "- `{}` **{}** ({}-{}): {}\n",
+            s.id, s.name, s.min, s.max, s.description
+        );
     }
     ct += "\n## Life activities (monthly time budget)\n\n";
     for a in &c.life.activities {
-        ct += &format!("- `{}` **{}**: {} Effects: {:?}\n", a.id, a.name, a.description, a.effects);
+        ct += &format!(
+            "- `{}` **{}**: {} Effects: {:?}\n",
+            a.id, a.name, a.description, a.effects
+        );
     }
     ct += &format!("\n## Life events ({})\n\n", c.life.events.len());
     for e in &c.life.events {
-        ct += &format!("- `{}` **{}** [{}] chance {:.1}%/month{}\n", e.id, e.title, e.stages.join(","), e.chance * 100.0, if e.choices.is_empty() { String::new() } else { format!(", {} choices", e.choices.len()) });
+        ct += &format!(
+            "- `{}` **{}** [{}] chance {:.1}%/month{}\n",
+            e.id,
+            e.title,
+            e.stages.join(","),
+            e.chance * 100.0,
+            if e.choices.is_empty() {
+                String::new()
+            } else {
+                format!(", {} choices", e.choices.len())
+            }
+        );
     }
     let _ = std::fs::write(format!("{dir}/CONTENT.md"), ct);
     println!("Wrote SETTINGS.md, TUNING.md, RULES_AND_HISTORY.md and CONTENT.md to {dir}/.");
+}
+
+fn cmd_newpack(s: &mut Session, a: &[&str]) {
+    let Some(path) = a.first() else {
+        println!("Usage: newpack <year-pack.json> [seed]   (a pack describes a whole season: teams, players, draft class)");
+        return;
+    };
+    let text = match std::fs::read_to_string(path) {
+        Ok(t) => t,
+        Err(e) => return println!("Can't read {path}: {e}"),
+    };
+    let pack: hardwood_dynasty::import::YearPack = match serde_json::from_str(&text) {
+        Ok(p) => p,
+        Err(e) => {
+            return println!(
+                "That isn't a valid year pack: {e} (line {}). See docs/IMPORTING.md.",
+                e.line()
+            )
+        }
+    };
+    let seed = a
+        .get(1)
+        .map(|x| x.to_string())
+        .unwrap_or_else(|| "pack".into());
+    let mods = load_mod_texts(&s.mods_dir);
+    match League::new_from_pack(
+        &pack,
+        &NewLeagueOptions {
+            name: pack.name.clone(),
+            seed,
+            mods,
+            ..Default::default()
+        },
+    ) {
+        Ok((l, rep)) => {
+            println!(
+                "Started '{}' ({}): {} teams.",
+                pack.name,
+                l.year,
+                l.active_team_ids().len()
+            );
+            println!("{}", rep.summary());
+            s.league = Some(l);
+        }
+        Err(e) => println!("Couldn't build the league: {e}"),
+    }
 }

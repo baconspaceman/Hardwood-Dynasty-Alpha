@@ -654,17 +654,74 @@ pub struct StatLine {
 
 /// Saves store a stat line as a short array instead of a labeled object (much smaller files).
 #[derive(Serialize, Deserialize)]
-struct StatLineCompact(u16, u16, f64, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, i32);
+struct StatLineCompact(
+    u16,
+    u16,
+    f64,
+    u32,
+    u32,
+    u32,
+    u32,
+    u32,
+    u32,
+    u32,
+    u32,
+    u32,
+    u32,
+    u32,
+    u32,
+    u32,
+    u32,
+    i32,
+);
 
 impl From<StatLineCompact> for StatLine {
     fn from(c: StatLineCompact) -> Self {
-        StatLine { g: c.0, gs: c.1, min: c.2, fgm: c.3, fga: c.4, tpm: c.5, tpa: c.6, ftm: c.7, fta: c.8, orb: c.9, drb: c.10, ast: c.11, stl: c.12, blk: c.13, tov: c.14, pf: c.15, pts: c.16, plus_minus: c.17 }
+        StatLine {
+            g: c.0,
+            gs: c.1,
+            min: c.2,
+            fgm: c.3,
+            fga: c.4,
+            tpm: c.5,
+            tpa: c.6,
+            ftm: c.7,
+            fta: c.8,
+            orb: c.9,
+            drb: c.10,
+            ast: c.11,
+            stl: c.12,
+            blk: c.13,
+            tov: c.14,
+            pf: c.15,
+            pts: c.16,
+            plus_minus: c.17,
+        }
     }
 }
 
 impl From<StatLine> for StatLineCompact {
     fn from(s: StatLine) -> Self {
-        StatLineCompact(s.g, s.gs, s.min, s.fgm, s.fga, s.tpm, s.tpa, s.ftm, s.fta, s.orb, s.drb, s.ast, s.stl, s.blk, s.tov, s.pf, s.pts, s.plus_minus)
+        StatLineCompact(
+            s.g,
+            s.gs,
+            s.min,
+            s.fgm,
+            s.fga,
+            s.tpm,
+            s.tpa,
+            s.ftm,
+            s.fta,
+            s.orb,
+            s.drb,
+            s.ast,
+            s.stl,
+            s.blk,
+            s.tov,
+            s.pf,
+            s.pts,
+            s.plus_minus,
+        )
     }
 }
 

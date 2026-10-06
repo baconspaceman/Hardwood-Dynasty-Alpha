@@ -4,11 +4,11 @@ Describe the player-facing or developer-facing change.
 
 ## Checklist
 
-- [ ] I ran `npm run check`
-- [ ] I updated docs if architecture or workflow changed
-- [ ] I called out save-data or historical-data implications
-- [ ] I included screenshots for UI changes
+- [ ] `cargo fmt` and `cargo test --release` pass
+- [ ] I regenerated docs if settings, tuning, rules or content changed (`cargo run --release -- gen-docs docs`)
+- [ ] I called out save-format or determinism implications
+- [ ] I added or updated tests (calibration, rules, careers, imports...)
 
-## Review Notes
+## Review notes
 
 List risks, edge cases, or follow-up items.

@@ -6,14 +6,23 @@ use hardwood_dynasty::types::Phase;
 
 #[test]
 fn played_seasons_match_style() {
-    let mut l = League::new(NewLeagueOptions { year: 2012, seed: "drift".into(), ..Default::default() }).unwrap();
+    let mut l = League::new(NewLeagueOptions {
+        year: 2012,
+        seed: "drift".into(),
+        ..Default::default()
+    })
+    .unwrap();
     for _ in 0..8 {
         l.advance(Goal::UntilPhase(Phase::Playoffs));
         let y = l.year;
         let mut s = StatLine::default();
         let mut games = 0.0;
         for p in l.players.iter() {
-            for r in p.seasons.iter().filter(|r| r.season == y && r.level == Level::Pro) {
+            for r in p
+                .seasons
+                .iter()
+                .filter(|r| r.season == y && r.level == Level::Pro)
+            {
                 s.add(&r.stats);
             }
         }

@@ -1,0 +1,8 @@
+{
+  "injuries.frequency": 1.6,
+  "injuries.career_ending": 2.5,
+  "draft.scouting_fog": 1.6,
+  "ai.trade_pickiness": 1.8,
+  "difficulty.owner_patience": 0.7,
+  "life.intensity": 2.0
+}
