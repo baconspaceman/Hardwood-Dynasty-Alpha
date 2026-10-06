@@ -1,0 +1,27 @@
+[package]
+name = "hardwood_dynasty"
+version = "0.1.0"
+edition = "2021"
+description = "A deep, era-accurate basketball simulation engine: play as GM, coach, owner, scout or player."
+license = "MIT"
+publish = false
+
+[lib]
+name = "hardwood_dynasty"
+path = "src/lib.rs"
+
+[[bin]]
+name = "hwd"
+path = "src/bin/hwd.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 4
+
+[profile.test]
+opt-level = 2
