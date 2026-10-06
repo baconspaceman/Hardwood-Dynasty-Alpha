@@ -432,6 +432,7 @@ impl League {
             l.league_postseason_events(rng);
         });
         self.story_offseason();
+        self.prune_history();
         self.offer_promotions();
         self.mark_expiring();
         self.phase = Phase::Draft;
@@ -1523,5 +1524,60 @@ impl Player {
             .find(|r| r.level == Level::Pro)
             .map(|r| r.team_id == Some(t))
             .unwrap_or(false)
+    }
+}
+
+impl League {
+    /// Keep saves small over many decades: players who retired long ago and left no mark have
+    /// their season-by-season history folded into one career line per level.
+    pub fn prune_history(&mut self) {
+        let year = self.year;
+        let mut folded = 0;
+        for p in self.players.iter_mut() {
+            let Some(r) = p.retired else { continue };
+            if p.user_controlled || p.hall_of_fame.is_some() || p.flags.contains("pruned") {
+                continue;
+            }
+            let age_out = year - r >= 4;
+            let notable = p.awards.len() >= 2 || p.peak_ovr >= 75;
+            let amateur_only = p.seasons.iter().all(|s| !matches!(s.level, Level::Pro | Level::Overseas));
+            if !(age_out && !notable || amateur_only && year - r >= 1) {
+                continue;
+            }
+            let mut by_level: Vec<(Level, SeasonRecord)> = vec![];
+            for s in p.seasons.drain(..) {
+                if let Some((_, acc)) = by_level.iter_mut().find(|(l, _)| *l == s.level) {
+                    acc.stats.add(&s.stats);
+                    acc.playoffs.add(&s.playoffs);
+                    acc.season = s.season;
+                    acc.ovr = acc.ovr.max(s.ovr);
+                } else {
+                    let mut first = s.clone();
+                    first.team = format!("Career ({})", first.team);
+                    by_level.push((s.level, first));
+                }
+            }
+            p.seasons = by_level.into_iter().map(|(_, s)| s).collect();
+            p.injury_history.clear();
+            p.badges.clear();
+            p.custom.clear();
+            p.life = None;
+            p.flags.clear();
+            p.flags.insert("pruned".into());
+            folded += 1;
+        }
+        let _ = folded;
+        if self.box_log.len() > 10 {
+            let n = self.box_log.len() - 10;
+            self.box_log.drain(0..n);
+        }
+        if self.news.len() > 1500 {
+            let n = self.news.len() - 1500;
+            self.news.drain(0..n);
+        }
+        if self.transactions.len() > 1500 {
+            let n = self.transactions.len() - 1500;
+            self.transactions.drain(0..n);
+        }
     }
 }

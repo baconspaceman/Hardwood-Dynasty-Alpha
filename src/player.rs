@@ -630,6 +630,7 @@ pub struct PlayerBadge {
 // -------------------------------------------------------------------------------------------
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
+#[serde(from = "StatLineCompact", into = "StatLineCompact")]
 pub struct StatLine {
     pub g: u16,
     pub gs: u16,
@@ -649,6 +650,22 @@ pub struct StatLine {
     pub pf: u32,
     pub pts: u32,
     pub plus_minus: i32,
+}
+
+/// Saves store a stat line as a short array instead of a labeled object (much smaller files).
+#[derive(Serialize, Deserialize)]
+struct StatLineCompact(u16, u16, f64, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32, i32);
+
+impl From<StatLineCompact> for StatLine {
+    fn from(c: StatLineCompact) -> Self {
+        StatLine { g: c.0, gs: c.1, min: c.2, fgm: c.3, fga: c.4, tpm: c.5, tpa: c.6, ftm: c.7, fta: c.8, orb: c.9, drb: c.10, ast: c.11, stl: c.12, blk: c.13, tov: c.14, pf: c.15, pts: c.16, plus_minus: c.17 }
+    }
+}
+
+impl From<StatLine> for StatLineCompact {
+    fn from(s: StatLine) -> Self {
+        StatLineCompact(s.g, s.gs, s.min, s.fgm, s.fga, s.tpm, s.tpa, s.ftm, s.fta, s.orb, s.drb, s.ast, s.stl, s.blk, s.tov, s.pf, s.pts, s.plus_minus)
+    }
 }
 
 impl StatLine {
