@@ -217,7 +217,7 @@ impl League {
         flow: f64,
         school: &str,
     ) -> Player {
-        let base = 38.0 + prestige * 0.11 + class as f64 * 2.6;
+        let base = 31.0 + prestige * 0.10 + class as f64 * 2.3;
         let cur = (rng.gauss(base, 5.0) + rng.exp(2.0)).clamp(30.0, 74.0);
         let age = 17 + class as i32 + if rng.chance(0.2) { 1 } else { 0 };
         let pot =
@@ -243,7 +243,7 @@ impl League {
         for k in 0..n {
             // top-heavy talent: a few stars, many role players
             let q = rng.exp(1.0);
-            let cur = (30.0 + q * 6.2 * strength + rng.gauss(0.0, 3.5)).clamp(26.0, 66.0);
+            let cur = (27.0 + q * 5.2 * strength + rng.gauss(0.0, 3.0)).clamp(24.0, 58.0);
             let pot = (cur
                 + 8.0
                 + rng.exp(7.0) * strength
@@ -257,7 +257,7 @@ impl League {
             let spec = GenSpec::new(
                 self.year,
                 age,
-                cur + if k == 0 && generational { 12.0 } else { 0.0 },
+                cur + if k == 0 && generational { 5.0 } else { 0.0 },
                 pot,
                 OriginKind::HighSchool,
             );
@@ -935,6 +935,7 @@ impl League {
                 }
                 Affiliation::Overseas(_) => {
                     age_at_draft >= rules.min_draft_age as i32
+                        && age_at_draft <= 25
                         && p.draft.is_none()
                         && p.draft_rights.is_none()
                 }

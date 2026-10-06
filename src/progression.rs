@@ -180,6 +180,7 @@ impl Default for DevContext {
 pub fn develop(p: &mut Player, next_age: i32, ctx: &DevContext, prm: &ProgParams, rng: &mut Rng) {
     let age_from = (next_age - 1) as f64;
     let h = p.hidden.clone();
+    let pot_before = p.potential as f64;
     // Late bloomers/early peakers shift the player's age curve.
     let shift = (h.peak_age as f64 - 27.0) + h.bloom as f64 * prm.late_bloomers;
     let eff_age = age_from - shift;
@@ -188,7 +189,7 @@ pub fn develop(p: &mut Player, next_age: i32, ctx: &DevContext, prm: &ProgParams
     let fac = 0.97 + 0.06 * ctx.facilities / 100.0;
     let pt = 0.8 + 0.2 * (ctx.minutes_share * 2.0).clamp(0.0, 1.0);
     let gap = (p.potential as f64 - p.ovr as f64 + 6.0) / 10.0;
-    let young_growth = gap.clamp(0.25, 2.0);
+    let young_growth = gap.clamp(0.25, 1.5);
     let ps = p.dev_focus;
     let mut shock = rng.gauss(0.0, 1.0 * prm.variance);
     // Busts stall; breakouts surge.
@@ -202,7 +203,7 @@ pub fn develop(p: &mut Player, next_age: i32, ctx: &DevContext, prm: &ProgParams
         let exp = yearly_delta(fam, eff_age);
         let mut d = if exp > 0.0 {
             // growth
-            let base_scale = prm.speed * we * coach * fac * pt * young_growth * coachable;
+            let base_scale = 0.55 * prm.speed * we * coach * fac * pt * young_growth * coachable;
             let life = if fam == Family::Athletic {
                 ctx.life_phys
             } else {
@@ -225,6 +226,17 @@ pub fn develop(p: &mut Player, next_age: i32, ctx: &DevContext, prm: &ProgParams
         p.attrs.add(*a, d + noise + shock * 0.8);
     }
     p.recompute_ovr();
+    // Soft ceiling: talent rarely blows far past its potential before the late 20s.
+    if next_age < 27 {
+        let ceiling = pot_before + 3.0 + h.bloom.max(0.0) as f64 * 1.5;
+        let over = p.ovr as f64 - ceiling;
+        if over > 0.0 {
+            for a in Attr::ALL {
+                p.attrs.add(*a, -over / 1.38);
+            }
+            p.recompute_ovr();
+        }
+    }
     // Potential drifts: revealed over time; converges on current ability by the late 20s.
     let pot = p.potential as f64;
     let ovr = p.ovr as f64;

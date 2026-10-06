@@ -568,6 +568,7 @@ impl League {
         p.years_pro = 0;
         p.flags.remove("expiring");
         p.mood.overall = 75.0;
+        p.flags.insert("fresh_rookie".into());
         if user_player {
             p.flags.insert("drafted".into());
         }

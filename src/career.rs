@@ -506,7 +506,7 @@ impl League {
                     "Unknown start '{other}'. Use hs9, hs10, hs11, hs12, college, overseas or pro."
                 )),
             };
-        let potential = match spec.talent {
+        let potential: f64 = match spec.talent {
             1 => 62.0,
             2 => 70.0,
             3 => 78.0,
@@ -514,12 +514,12 @@ impl League {
             _ => 95.0,
         };
         // current level by age (peak minus the age shift)
-        let ovr_now = potential + crate::progression::age_shift(age.max(18))
-            - if age < 18 {
-                3.0 * (18 - age) as f64
-            } else {
-                0.0
-            };
+        // Teen talent: a future star is still well below pro level in high school.
+        let ovr_now = if age < 19 {
+            25.0 + (potential - 55.0).max(0.0) * 0.6 - (18 - age).max(0) as f64 * 2.5
+        } else {
+            potential + crate::progression::age_shift(age)
+        };
         let mut gs = GenSpec::new(self.year, age, ovr_now.max(26.0), potential, origin);
         gs.height_in = Some(spec.height_in);
         gs.position = Some(spec.position);
@@ -802,11 +802,12 @@ impl League {
     fn hs_game(&self, pid: PlayerId, rng: &mut Rng) -> (StatLine, String) {
         let p = self.p(pid);
         let gp = crate::game::GamePlayer::from_player(p, &self.content.badges, 1.0, 0.0);
-        let level = (p.ovr as f64 - 30.0).max(1.0);
         let min = rng.gauss(26.0, 3.0).clamp(14.0, 32.0);
-        let usage = 0.22 + (gp.scoring - 45.0).max(0.0) * 0.004;
-        let pts = (level * 0.55 * (min / 30.0) * usage / 0.22 * rng.gauss(1.0, 0.3))
-            .max(0.0)
+        // High-school scoring: a 40 plays like a decent starter (~12 ppg), a 60 like a star (~27).
+        let base = 3.0 + (p.ovr as f64 - 30.0).max(0.0) * 0.65;
+        let usage = (gp.scoring / 60.0).clamp(0.7, 1.3);
+        let pts = (base * usage * (min / 26.0) * rng.gauss(1.0, 0.28))
+            .clamp(0.0, 62.0)
             .round() as u32;
         let reb =
             ((gp.drb.max(gp.orb) - 30.0).max(0.0) * 0.18 * (min / 30.0) * rng.gauss(1.0, 0.35))

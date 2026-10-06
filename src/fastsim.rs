@@ -243,7 +243,7 @@ fn allocate(
         s.tpa = ((s.tpm as f64 / 0.34) + rng.gauss(0.0, 0.5))
             .round()
             .max(s.tpm as f64) as u32;
-        s.tpa = s.tpa.min(s.fga);
+        s.tpa = if three_rate > 0.0 { s.tpa.min(s.fga) } else { 0 };
         let mut m = |w: f64, tot: f64, sumw: f64| {
             ((tot * w / sumw) + rng.gauss(0.0, 0.5)).round().max(0.0) as u32
         };

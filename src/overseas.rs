@@ -537,6 +537,9 @@ impl League {
                     let age = self.year + 1 - self.p(id).birth_year;
                     let tier = self.clubs[ci].tier;
                     if self.p(id).user_controlled {
+                        // The human's club simply renews him (a full negotiation lives in the NBA path).
+                        let c = self.overseas_contract(tier, ovr, rng);
+                        self.pm(id).contract = Some(c);
                         continue;
                     }
                     if age >= 36 && ovr < 60 && rng.chance(0.6) {

@@ -894,6 +894,11 @@ impl League {
         let mut expiring: Vec<(PlayerId, TeamId)> = vec![];
         for t in self.active_team_ids() {
             for id in self.team(t).roster.clone() {
+                // Rookies drafted this cycle haven't played a season on their deal yet.
+                if self.p(id).flags.contains("fresh_rookie") {
+                    self.pm(id).flags.remove("fresh_rookie");
+                    continue;
+                }
                 let alive = self
                     .pm(id)
                     .contract

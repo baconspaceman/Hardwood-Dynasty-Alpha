@@ -191,11 +191,26 @@ impl League {
     }
 
     fn auto_resolve_decisions(&mut self) {
-        let decs: Vec<Decision> = self.decisions.drain(..).collect();
+        let decs: Vec<Decision> = self.decisions.clone();
         for d in decs {
-            // default to the first option
-            if let Some(o) = d.options.first() {
-                let _ = self.resolve_decision(d.id, &o.id.clone(), true);
+            // default to the first option; if it can't be applied, try the others, else drop the decision
+            let mut done = false;
+            // A retirement choice: veterans eventually hang it up.
+            if d.kind == "retire" {
+                if let Some(pid) = d.subject {
+                    if self.age_of(pid) + 1 >= 37 && d.options.iter().any(|o| o.id == "retire") && self.resolve_decision(d.id, "retire", true).is_ok() {
+                        continue;
+                    }
+                }
+            }
+            for o in &d.options {
+                if self.resolve_decision(d.id, &o.id.clone(), true).is_ok() {
+                    done = true;
+                    break;
+                }
+            }
+            if !done {
+                self.decisions.retain(|x| x.id != d.id);
             }
         }
     }
