@@ -547,6 +547,37 @@ impl League {
         }
     }
 
+    /// The rule book for a season after applying the realism/economy settings.
+    pub fn effective_rules(&self, season: Season) -> Rules {
+        let mut r = self.content.rules(self.rules_year_for(season));
+        r.year = season;
+        match self.settings.text("realism.high_school_rule").as_str() {
+            "always" => {
+                r.hs_allowed = true;
+                r.min_draft_age = r.min_draft_age.min(18);
+            }
+            "never" => {
+                r.hs_allowed = false;
+                r.min_draft_age = r.min_draft_age.max(19);
+            }
+            _ => {}
+        }
+        if !self.settings.bool("economy.luxury_tax") {
+            r.luxury_tax = false;
+        }
+        if !self.settings.bool("economy.aprons") {
+            r.aprons = false;
+        }
+        if !self.settings.bool("economy.max_contracts") {
+            r.max_contract = false;
+        }
+        if self.settings.bool("realism.cap_before_1984") && r.cap_type == crate::era::CapType::None
+        {
+            r.cap_type = crate::era::CapType::Soft;
+        }
+        r
+    }
+
     pub fn save_json(&self) -> Result<String, String> {
         serde_json::to_string(self).map_err(|e| format!("Could not save: {e}"))
     }

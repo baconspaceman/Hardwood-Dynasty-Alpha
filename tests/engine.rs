@@ -219,3 +219,31 @@ fn settings_are_all_reachable_through_a_league() {
         assert!(l.settings.explain(&d.key).is_some());
     }
 }
+
+#[test]
+fn every_setting_is_actually_used_by_the_engine() {
+    // A documented switch that does nothing is worse than no switch: each setting key must be
+    // referenced somewhere outside the registry itself.
+    let mut code = String::new();
+    for dir in ["src", "src/bin"] {
+        for e in std::fs::read_dir(format!("{}/{}", env!("CARGO_MANIFEST_DIR"), dir)).unwrap() {
+            let p = e.unwrap().path();
+            if p.extension().map(|x| x == "rs").unwrap_or(false)
+                && p.file_name().unwrap() != "settings.rs"
+            {
+                code += &std::fs::read_to_string(&p).unwrap();
+            }
+        }
+    }
+    let l = make(1996, "unused");
+    let mut unused = vec![];
+    for d in l.settings.defs() {
+        if !code.contains(&format!("\"{}\"", d.key)) {
+            unused.push(d.key.clone());
+        }
+    }
+    assert!(
+        unused.is_empty(),
+        "settings not wired to anything: {unused:?}"
+    );
+}

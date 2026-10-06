@@ -1123,6 +1123,19 @@ impl League {
             if payroll + ask > self.money.tax_line + tm_budget.tax_tolerance && ask > minsal {
                 continue;
             }
+            // Without 'superteams', stars avoid joining clubs that already have two of them.
+            if !self.settings.bool("ai.superteams")
+                && p.ovr >= 78
+                && self
+                    .team(t)
+                    .roster
+                    .iter()
+                    .filter(|&&r| self.p(r).ovr >= 78)
+                    .count()
+                    >= 2
+            {
+                continue;
+            }
             // team needs: contenders want quality, rebuilders want youth
             let v = self.player_value(id);
             let age = (self.year + 1 - p.birth_year) as f64;

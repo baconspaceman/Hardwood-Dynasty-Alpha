@@ -635,6 +635,8 @@ pub struct GameContext {
     pub foul_rate: f64,
     pub hot_hand: bool,
     pub clutch: bool,
+    /// Coaches adjust rotations in-game (closing lineups, garbage time).
+    pub coach_adjust: bool,
     pub possession_detail: f64,
     pub in_game_injuries: bool,
     pub playoffs: bool,
@@ -1008,8 +1010,8 @@ impl<'a> Sim<'a> {
 
     fn substitutions(&mut self) {
         let hyst = self.ctx.tune.sub_hyst * 60.0;
-        let clutch = self.clutch_time();
-        let garbage = self.garbage_time();
+        let clutch = self.clutch_time() && self.ctx.coach_adjust;
+        let garbage = self.garbage_time() && self.ctx.coach_adjust;
         let elapsed = self.elapsed;
         let period = self.period as usize;
         let foul_limit = self.ctx.rules.foul_limit;
@@ -2500,6 +2502,7 @@ mod tests {
             foul_rate: 1.0,
             hot_hand: true,
             clutch: true,
+            coach_adjust: true,
             possession_detail: 1.0,
             in_game_injuries: false,
             playoffs: false,

@@ -693,6 +693,7 @@ impl League {
                 )],
                 last_year: None,
                 speculative: false,
+                tags: vec![],
             });
         }
         modpack.franchises = ListPatch {

@@ -125,7 +125,6 @@ In the game: `settings` lists them, `settings explain <key>` explains one, `sett
 | `college.programs` | How many fictional college teams exist. | 16: 16 = a tiny college world. | 200: 200 = a full landscape (slower sims). | 96 |
 | `college.nil` | Players can be paid by boosters and brands (modern era). | OFF: amateurism strictly enforced. | ON: NIL era-correct (2021+). | ON |
 | `college.transfer_portal` | College players can transfer freely (modern era). | OFF: transfers are rare. | ON: free transfers in the modern era. | ON |
-| `college.sim_detail` | How deeply college games are simulated. |  | `full`: Every college game uses the full possession engine.<br>`fast`: Team-level approximation with box scores. Much faster over 80 years. | full |
 | `college.tournament` | A national tournament decides a college champion. | OFF: no tournament. | ON: era-correct tournament field. | ON |
 
 ## Difficulty

@@ -331,9 +331,6 @@ pub fn builtin_defs() -> Vec<SettingDef> {
             "ON: NIL era-correct (2021+).", "OFF: amateurism strictly enforced.", false),
         toggle("college.transfer_portal", "Transfer portal", "College players can transfer freely (modern era).", true,
             "ON: free transfers in the modern era.", "OFF: transfers are rare.", false),
-        choice("college.sim_detail", "College sim detail", "How deeply college games are simulated.", "full",
-            &[("full", "Full", "Every college game uses the full possession engine."),
-              ("fast", "Fast", "Team-level approximation with box scores. Much faster over 80 years.")], false),
         toggle("college.tournament", "Postseason tournament", "A national tournament decides a college champion.", true,
             "ON: era-correct tournament field.", "OFF: no tournament.", false),
 

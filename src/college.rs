@@ -913,7 +913,7 @@ impl League {
     /// College / HS / overseas players who enter this year's draft.
     pub fn declared_prospects(&mut self, rng: &mut Rng) -> Vec<PlayerId> {
         let draft_year = self.year + 1;
-        let rules = self.content.rules(self.rules_year_for(draft_year));
+        let rules = self.effective_rules(draft_year);
         let slots = rules.draft_rounds as usize * self.active_team_ids().len();
         let mut out: Vec<PlayerId> = vec![];
         // Rank everyone who could possibly be drafted by value.

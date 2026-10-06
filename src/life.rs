@@ -635,6 +635,12 @@ pub struct LifeInputs<'a> {
     /// Is it the school year / season?
     pub intensity: f64,
     pub auto_decisions: bool,
+    /// Life-sim switches from settings.
+    pub school: bool,
+    pub money: bool,
+    pub relationships: bool,
+    pub mental_health: bool,
+    pub social_media: bool,
 }
 
 /// Apply one month of life: time allocation → stats, finances, then roll life events.
@@ -661,7 +667,11 @@ pub fn monthly_tick(p: &mut Player, inp: &LifeInputs, rng: &mut crate::rng::Rng)
         }
         for (k, d) in &a.effects {
             if k == "money" {
-                money_gain += d * share * cpi(year);
+                if inp.money {
+                    money_gain += d * share * cpi(year);
+                }
+            } else if k == "grades" && !inp.school {
+                // school is switched off: grades never change
             } else {
                 let v = life.stats.entry(k.clone()).or_insert(0.0);
                 *v += d * share;
@@ -688,58 +698,60 @@ pub fn monthly_tick(p: &mut Player, inp: &LifeInputs, rng: &mut crate::rng::Rng)
         .clamp(0.0, 100.0) as f32;
 
     // 4. Money.
-    let f = &mut life.finance;
-    let monthly_income =
-        inp.annual_income as f64 / 12.0 + f.endorsements as f64 / 12.0 + money_gain;
-    let tax = monthly_income
-        * tax_rate(
-            year,
-            (inp.annual_income + f.endorsements).max(1),
-            inp.avg_salary,
-        );
-    let cost = cpi(year) * (1200.0 + 4800.0 * f.lifestyle / 100.0)
-        + if life.stage == LifeStage::Pro || life.stage == LifeStage::Overseas {
-            cpi(year) * 3000.0
-        } else {
-            0.0
-        };
-    // Agents take a cut of salary + endorsements
-    let agent_fee = life
-        .agent
-        .as_ref()
-        .map(|a| a.fee_pct / 100.0 * monthly_income)
-        .unwrap_or(0.0);
-    let f = &mut life.finance;
-    f.income_this_year += monthly_income as i64;
-    f.taxes_this_year += tax as i64;
-    f.lifetime_earnings += monthly_income as i64;
-    f.lifetime_taxes += tax as i64;
-    let net = monthly_income - tax - cost - agent_fee;
-    f.cash += net as i64;
-    // Investments return ~0.5%/month ± noise; cash shortage becomes debt (and costs interest).
-    f.investments = (f.investments as f64 * (1.0 + rng.gauss(0.005, 0.03))) as i64;
-    if f.cash < 0 {
-        f.debt += -f.cash;
-        f.cash = 0;
-    } else if f.debt > 0 && f.cash > f.debt {
-        f.cash -= f.debt;
-        f.debt = 0;
-    }
-    f.debt = (f.debt as f64 * 1.01) as i64;
-    // Excess cash goes into investments for mature players.
-    if f.cash > (cpi(year) * 400_000.0) as i64
-        && life.stats.get("maturity").copied().unwrap_or(0.0) > 55.0
-    {
-        let move_amt = f.cash / 2;
-        f.cash -= move_amt;
-        f.investments += move_amt;
+    if inp.money {
+        let f = &mut life.finance;
+        let monthly_income =
+            inp.annual_income as f64 / 12.0 + f.endorsements as f64 / 12.0 + money_gain;
+        let tax = monthly_income
+            * tax_rate(
+                year,
+                (inp.annual_income + f.endorsements).max(1),
+                inp.avg_salary,
+            );
+        let cost = cpi(year) * (1200.0 + 4800.0 * f.lifestyle / 100.0)
+            + if life.stage == LifeStage::Pro || life.stage == LifeStage::Overseas {
+                cpi(year) * 3000.0
+            } else {
+                0.0
+            };
+        // Agents take a cut of salary + endorsements
+        let agent_fee = life
+            .agent
+            .as_ref()
+            .map(|a| a.fee_pct / 100.0 * monthly_income)
+            .unwrap_or(0.0);
+        let f = &mut life.finance;
+        f.income_this_year += monthly_income as i64;
+        f.taxes_this_year += tax as i64;
+        f.lifetime_earnings += monthly_income as i64;
+        f.lifetime_taxes += tax as i64;
+        let net = monthly_income - tax - cost - agent_fee;
+        f.cash += net as i64;
+        // Investments return ~0.5%/month ± noise; cash shortage becomes debt (and costs interest).
+        f.investments = (f.investments as f64 * (1.0 + rng.gauss(0.005, 0.03))) as i64;
+        if f.cash < 0 {
+            f.debt += -f.cash;
+            f.cash = 0;
+        } else if f.debt > 0 && f.cash > f.debt {
+            f.cash -= f.debt;
+            f.debt = 0;
+        }
+        f.debt = (f.debt as f64 * 1.01) as i64;
+        // Excess cash goes into investments for mature players.
+        if f.cash > (cpi(year) * 400_000.0) as i64
+            && life.stats.get("maturity").copied().unwrap_or(0.0) > 55.0
+        {
+            let move_amt = f.cash / 2;
+            f.cash -= move_amt;
+            f.investments += move_amt;
+        }
     }
 
     // 5. Academic eligibility.
     if matches!(life.stage, LifeStage::HighSchool | LifeStage::College) {
         let g = life.stat("grades");
         let was = life.eligible;
-        life.eligible = g >= 2.0;
+        life.eligible = !inp.school || g >= 2.0;
         if was && !life.eligible {
             log.push(format!(
                 "{} is now academically INELIGIBLE (GPA {:.2}). Raise your grades to play again.",
@@ -758,7 +770,30 @@ pub fn monthly_tick(p: &mut Player, inp: &LifeInputs, rng: &mut crate::rng::Rng)
     }
     let intensity = inp.intensity;
     if intensity > 0.0 {
-        let defs_events = &inp.defs.events;
+        let mut off: Vec<&str> = vec![];
+        if !inp.relationships {
+            off.extend(["romance", "family", "social"]);
+        }
+        if !inp.mental_health {
+            off.push("health");
+        }
+        if !inp.social_media {
+            off.extend(["media", "fame"]);
+        }
+        if !inp.school {
+            off.push("school");
+        }
+        if !inp.money {
+            off.push("money");
+        }
+        let filtered: Vec<EventDef> = inp
+            .defs
+            .events
+            .iter()
+            .filter(|e| !off.contains(&e.category.as_str()))
+            .cloned()
+            .collect();
+        let defs_events = &filtered;
         let mut news = vec![];
         let pending_before = life.pending.len();
         let mut ctx = LifeCtx {

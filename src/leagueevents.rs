@@ -138,7 +138,8 @@ impl League {
         let franchises = self.content.franchises.clone();
         for (fi, fr) in franchises.iter().enumerate() {
             let existing = self.teams.iter().position(|t| t.franchise == fr.key);
-            let should_be = fr.active_in(next) && (!fr.speculative || include_spec);
+            let should_be = fr.active_in_with(next, self.settings.bool("realism.aba_merger"))
+                && (!fr.speculative || include_spec);
             match existing {
                 None if should_be => self.expand_league(fi, next, rng),
                 Some(ti)
@@ -209,7 +210,7 @@ impl League {
         // build with next-season money
         let t = self.build_team_shell(rng, fi, ident, conf, div);
         self.create_staff_for_team(rng, t);
-        let merger = next == 1976 || next == 1949;
+        let merger = fr_is_merger(&self.content.franchises[fi], next);
         let quality = if merger { -0.5 } else { -3.5 };
         let roster_n = (self.rules.roster_max as usize)
             .saturating_sub(1)
@@ -283,4 +284,9 @@ impl League {
                 .push(format!("{}: your franchise folded.", self.year));
         }
     }
+}
+
+/// Did this franchise arrive by merger (rather than as a weak expansion team)?
+fn fr_is_merger(f: &crate::franchise::Franchise, next: i32) -> bool {
+    f.tags.iter().any(|t| t == "aba") && next == 1976 || next == 1949
 }

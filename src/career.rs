@@ -729,6 +729,11 @@ impl League {
             annual_income: income,
             intensity,
             auto_decisions: self.user.auto_decisions || self.settings.bool("life.auto_decisions"),
+            school: self.settings.bool("life.school"),
+            money: self.settings.bool("life.money"),
+            relationships: self.settings.bool("life.relationships"),
+            mental_health: self.settings.bool("life.mental_health"),
+            social_media: self.settings.bool("life.social_media"),
         };
         let mut rng = self.rng.fork("life");
         let log = monthly_tick(&mut self.players[pid as usize], &inp, &mut rng);
@@ -885,7 +890,7 @@ impl League {
             }
             Affiliation::College(c) => {
                 let class = crate::college::class_of(self.p(pid));
-                let rules = self.content.rules(self.rules_year_for(year + 1));
+                let rules = self.effective_rules(year + 1);
                 let eligible_early = rules.early_entry
                     && (year + 1 - self.p(pid).birth_year) >= rules.min_draft_age as i32;
                 let (o, pt, _) = self.scouted_view(None, pid);
@@ -1084,7 +1089,7 @@ impl League {
                         .into(),
             });
         }
-        let rules = self.content.rules(self.rules_year_for(year + 1));
+        let rules = self.effective_rules(year + 1);
         if rules.hs_allowed {
             opts.push(DecisionOption {
                 id: "declare".into(),

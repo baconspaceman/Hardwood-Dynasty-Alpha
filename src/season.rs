@@ -33,23 +33,7 @@ impl League {
     /// Resolve this season's rules, style and money (cap table or simulated cap).
     pub fn refresh_season_context(&mut self) {
         let ry = self.rules_year_for(self.year);
-        let mut rules = self.content.rules(ry);
-        rules.year = self.year;
-        if self.settings.bool("realism.cap_before_1984")
-            && rules.cap_type == crate::era::CapType::None
-        {
-            rules.cap_type = crate::era::CapType::Soft;
-        }
-        // Options that switch parts of the economy off.
-        if !self.settings.bool("economy.luxury_tax") {
-            rules.luxury_tax = false;
-        }
-        if !self.settings.bool("economy.aprons") {
-            rules.aprons = false;
-        }
-        if !self.settings.bool("economy.max_contracts") {
-            rules.max_contract = false;
-        }
+        let rules = self.effective_rules(self.year);
         let cap = match self.cap_history.iter().find(|(y, _)| *y == self.year) {
             Some((_, c)) => *c,
             None => {
@@ -297,6 +281,7 @@ impl League {
             foul_rate: s.num("sim.foul_rate"),
             hot_hand: s.bool("sim.hot_hand"),
             clutch: s.bool("sim.clutch"),
+            coach_adjust: s.bool("sim.coach_in_game"),
             possession_detail: s.num("sim.possession_detail"),
             in_game_injuries: s.bool("injuries.in_game"),
             playoffs,
@@ -368,7 +353,9 @@ impl League {
                     + (p.mood.overall as f64 - 60.0) / 2500.0
                     + (team.chemistry - 55.0) / 2500.0;
                 if let Some(l) = &p.life {
-                    perf *= l.performance_mod();
+                    if self.settings.bool("life.mental_health") {
+                        perf *= l.performance_mod();
+                    }
                 }
                 let risk = if in_game_injuries {
                     injury::BASE_PER_100_MIN

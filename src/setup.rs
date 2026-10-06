@@ -186,7 +186,9 @@ impl League {
 
     fn create_teams(&mut self, rng: &mut Rng) -> Result<(), String> {
         let include_spec = self.settings.bool("realism.historical_events") && self.year >= 2026;
-        let active = franchise::active_in(&self.content.franchises, self.year, include_spec);
+        let aba = self.settings.bool("realism.aba_merger");
+        let active =
+            franchise::active_in_with(&self.content.franchises, self.year, include_spec, aba);
         if active.len() < 4 {
             return Err("The content set has fewer than 4 franchises for that year. Check your franchise mods.".into());
         }

@@ -907,7 +907,13 @@ fn league_command(s: &mut Session, l: &mut League, cmd: &str, a: &[&str]) -> boo
                 println!("Usage: budget <payroll|tax|coaching|medical|scouting|facilities|marketing|ticket|concessions> <value>");
             }
         }
-        "chase" => cmd_chase(l, a),
+        "chase" => {
+            if l.settings.bool("economy.owner_chase_mode") {
+                cmd_chase(l, a)
+            } else {
+                println!("Chase Mode is turned off (setting economy.owner_chase_mode).");
+            }
+        }
         "role" | "take" | "take-role" => cmd_role(l, a),
         "scenario" => {
             if let (Some(id), Some(t)) = (a.first(), l.user.team) {
@@ -2715,6 +2721,7 @@ fn calibrate(args: &[String]) {
             foul_rate: 1.0,
             hot_hand: true,
             clutch: true,
+            coach_adjust: true,
             possession_detail: 1.0,
             in_game_injuries: false,
             playoffs: false,

@@ -149,7 +149,7 @@ impl League {
 
     pub fn setup_draft(&mut self, rng: &mut Rng) {
         let year = self.year + 1;
-        let dr = self.content.rules(self.rules_year_for(year));
+        let dr = self.effective_rules(year);
         let mut pool = self.declared_prospects(rng);
         // the human's created player may have declared
         for p in self

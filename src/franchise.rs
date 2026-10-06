@@ -29,6 +29,10 @@ pub struct Franchise {
     /// Marked for years beyond real history: only used when future expansion is allowed.
     #[serde(default)]
     pub speculative: bool,
+    /// Free-form labels. `aba` marks the rival-league clubs that merge into the league (see the
+    /// "Rival league merger" setting).
+    #[serde(default)]
+    pub tags: Vec<String>,
 }
 
 impl Franchise {
@@ -37,6 +41,16 @@ impl Franchise {
     }
     pub fn active_in(&self, year: i32) -> bool {
         year >= self.first_year() && self.last_year.map(|l| year <= l).unwrap_or(true)
+    }
+    /// Same as `active_in`, but with the rival-league merger switched off the `aba` clubs join
+    /// later as ordinary expansion teams instead of merging in.
+    pub fn active_in_with(&self, year: i32, aba_merger: bool) -> bool {
+        let delay = if !aba_merger && self.tags.iter().any(|t| t == "aba") {
+            6
+        } else {
+            0
+        };
+        year >= self.first_year() + delay && self.last_year.map(|l| year <= l).unwrap_or(true)
     }
     pub fn identity_in(&self, year: i32) -> &Identity {
         let mut cur = &self.eras[0].1;
@@ -66,12 +80,13 @@ fn fr(key: &str, eras: Vec<(i32, Identity)>, last: Option<i32>) -> Franchise {
         eras,
         last_year: last,
         speculative: false,
+        tags: vec![],
     }
 }
 
 /// The built-in franchise history, 1946 onward.
 pub fn builtin_franchises() -> Vec<Franchise> {
-    vec![
+    let mut v = vec![
         // ---- Original eleven (1946) ----
         fr(
             "bos",
@@ -437,15 +452,32 @@ pub fn builtin_franchises() -> Vec<Franchise> {
                 None,
             )
         },
-    ]
+    ];
+    for f in v.iter_mut() {
+        if ["den", "ind", "bkn", "sas"].contains(&f.key.as_str()) {
+            f.tags.push("aba".into());
+        }
+    }
+    v
 }
 
 /// Franchises active in a given season.
 pub fn active_in(franchises: &[Franchise], year: i32, include_speculative: bool) -> Vec<usize> {
+    active_in_with(franchises, year, include_speculative, true)
+}
+
+pub fn active_in_with(
+    franchises: &[Franchise],
+    year: i32,
+    include_speculative: bool,
+    aba_merger: bool,
+) -> Vec<usize> {
     franchises
         .iter()
         .enumerate()
-        .filter(|(_, f)| f.active_in(year) && (include_speculative || !f.speculative))
+        .filter(|(_, f)| {
+            f.active_in_with(year, aba_merger) && (include_speculative || !f.speculative)
+        })
         .map(|(i, _)| i)
         .collect()
 }
