@@ -1,0 +1,27 @@
+{
+  "mod": {
+    "name": "Brutal Knees",
+    "author": "example",
+    "version": "1.0",
+    "description": "Knee and Achilles injuries are far more common and far worse. Also adds a custom life event."
+  },
+  "settings_defaults": { "injuries.frequency": 1.4, "injuries.career_ending": 2.0 },
+  "tuning": { "game.fatigue_rate": 1.2 },
+  "injuries": {
+    "replace": [
+      { "id": "acl", "name": "Torn ACL", "body_part": "knee", "severity": "major", "weight": 1.6,
+        "median_games": 170, "max_games": 300, "career_ending": 0.08,
+        "permanent": [["speed", 3.0], ["agility", 3.0], ["vertical", 3.5], ["lateral_quickness", 3.0]],
+        "game_bias": 1.5, "recurrence": 2.2 }
+    ]
+  },
+  "life_events": {
+    "add": [
+      { "id": "pickup_with_legends", "title": "Run with the legends",
+        "text": "A group of retired legends invites {name} to their private summer runs.",
+        "category": "basketball", "chance": 0.04, "stages": ["college", "pro"],
+        "conditions": [ { "var": "life.reputation", "op": ">=", "value": 45 } ],
+        "effects": [ { "target": "attr.shot_iq", "op": "add", "value": 2 }, { "target": "life.reputation", "op": "add", "value": 3 } ] }
+    ]
+  }
+}
