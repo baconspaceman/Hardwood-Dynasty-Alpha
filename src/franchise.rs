@@ -503,7 +503,7 @@ mod tests {
         let n1976 = active_in(&f, 1976, false).len();
         let n1996 = active_in(&f, 1996, false).len();
         let n2010 = active_in(&f, 2010, false).len();
-        assert!(n1976 >= 20 && n1976 <= 24, "1976 had {n1976}");
+        assert!((20..=24).contains(&n1976), "1976 had {n1976}");
         assert_eq!(n1996, 29);
         assert_eq!(n2010, 30);
         assert_eq!(active_in(&f, 2030, true).len(), 32);

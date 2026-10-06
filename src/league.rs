@@ -541,7 +541,7 @@ impl League {
     /// Resolve which year's rules apply to a season, honouring the "rule set" setting.
     pub fn rules_year_for(&self, season: Season) -> Season {
         match self.settings.text("realism.rules_mode").as_str() {
-            "modern" => 2024.max(season.min(2024)),
+            "modern" => 2024,
             "custom_year" => self.settings.num("realism.frozen_rules_year") as i32,
             _ => season,
         }

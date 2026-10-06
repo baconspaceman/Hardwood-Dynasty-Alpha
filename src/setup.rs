@@ -87,7 +87,7 @@ impl League {
                 })?;
             settings.apply_preset(&preset);
         }
-        for e in settings.import_values(&opts.overrides) {
+        if let Some(e) = settings.import_values(&opts.overrides).into_iter().next() {
             return Err(e);
         }
         if opts.year < 1946 {

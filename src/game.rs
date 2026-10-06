@@ -1108,7 +1108,7 @@ impl<'a> Sim<'a> {
             frac = (frac * 1.35).min(0.97);
         }
         if garbage {
-            frac = if lead > 0 || lead < 0 {
+            frac = if lead != 0 {
                 if p.p.target_min >= 22.0 {
                     frac * 0.1
                 } else {
@@ -1207,10 +1207,7 @@ impl<'a> Sim<'a> {
                 if p.on {
                     p.secs += secs;
                     p.energy = (p.energy
-                        - drain_base
-                            * (1.30 - p.p.stamina / 100.0 + p.p.fx.stamina * -1.0)
-                            * mins
-                            * m)
+                        - drain_base * (1.30 - p.p.stamina / 100.0 + -p.p.fx.stamina) * mins * m)
                         .max(0.0);
                 } else {
                     p.energy = (p.energy + 0.75 * mins * (0.8 + p.p.stamina / 250.0)).min(100.0);
@@ -1322,8 +1319,7 @@ impl<'a> Sim<'a> {
         // Late game: trailing team fouls to stop the clock.
         let late = self.period >= 4
             && self.clock <= if r.intentional_foul_rule { 120.0 } else { 90.0 }
-            && behind < 0
-            && behind >= -9
+            && (-9..0).contains(&behind)
             && self.clock > 3.0;
         let _ = off;
         if late && self.rng.chance(if self.clock < 60.0 { 0.9 } else { 0.5 }) {

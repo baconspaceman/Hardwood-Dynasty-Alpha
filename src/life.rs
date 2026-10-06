@@ -658,7 +658,7 @@ pub fn monthly_tick(p: &mut Player, inp: &LifeInputs, rng: &mut crate::rng::Rng)
     let stage = life.stage.key().to_string();
     let mut money_gain = 0.0;
     for a in &inp.defs.activities {
-        if !a.stages.is_empty() && !a.stages.iter().any(|s| *s == stage) {
+        if !a.stages.is_empty() && !a.stages.contains(&stage) {
             continue;
         }
         let share = life.allocation.get(&a.id).copied().unwrap_or(0.0) / 100.0;
@@ -913,13 +913,7 @@ impl<'a> EventContext for LifeCtx<'a> {
                     0.0
                 }
             }
-            "eligible" => {
-                if self.life.eligible {
-                    1.0
-                } else {
-                    0.0
-                }
-            }
+            "eligible" if self.life.eligible => 1.0,
             _ => 0.0,
         }
     }

@@ -54,7 +54,7 @@ fn rules_apply_by_year() {
         .flat_map(|p| p.seasons.iter())
         .map(|s| s.stats.tpa)
         .sum();
-    assert!(l.rules.three_point == false);
+    assert!(!l.rules.three_point);
     assert_eq!(tpa, 0, "no threes attempted in 1960");
     assert_eq!(l.rules.shot_clock, 24);
     let m = make(1950, "rules2");

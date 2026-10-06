@@ -172,7 +172,7 @@ impl League {
         if round >= conf_rounds {
             return *v.last().unwrap();
         }
-        let idx = round.min(v.len().saturating_sub(2).max(0));
+        let idx = round.min(v.len().saturating_sub(2));
         v[idx.min(v.len() - 1)]
     }
 
@@ -414,7 +414,7 @@ impl League {
                 let gnum = s.games.len();
                 let finals_232 = s.conf.is_none() && (1985..=2013).contains(&self.year);
                 let pat = pattern(s.best_of, finals_232);
-                let high_home = pat.get(gnum).copied().unwrap_or(gnum % 2 == 0);
+                let high_home = pat.get(gnum).copied().unwrap_or(gnum.is_multiple_of(2));
                 let (home, away) = if high_home {
                     (s.high, s.low)
                 } else {

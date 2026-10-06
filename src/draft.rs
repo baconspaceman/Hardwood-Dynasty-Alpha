@@ -520,9 +520,8 @@ impl League {
         let year = self.year + 1;
         let was_overseas = matches!(self.p(id).affiliation, Affiliation::Overseas(_));
         // remove from the place he came from
-        match self.p(id).affiliation {
-            Affiliation::College(c) => self.colleges[c as usize].roster.retain(|&x| x != id),
-            _ => {}
+        if let Affiliation::College(c) = self.p(id).affiliation {
+            self.colleges[c as usize].roster.retain(|&x| x != id)
         }
         let tname = self.team(t).name();
         let age_at_draft = year - self.p(id).birth_year;

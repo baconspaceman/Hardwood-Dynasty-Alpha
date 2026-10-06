@@ -25,12 +25,10 @@ impl League {
                 let p = self.p(id);
                 // combine stints this season
                 let mut total = StatLine::default();
-                let mut last_ovr = p.ovr as f64;
                 let mut prev_ovr = None;
                 for r in p.seasons.iter().filter(|r| r.level == Level::Pro) {
                     if r.season == year {
                         total.add(&r.stats);
-                        last_ovr = r.ovr as f64;
                     } else if r.season == year - 1 {
                         prev_ovr = Some(r.ovr as f64);
                     }
@@ -61,10 +59,7 @@ impl League {
                     tov_pg: total.tov as f64 / g,
                     team_win_pct: tw,
                     ovr: p.ovr as f64,
-                    ovr_gain: prev_ovr
-                        .map(|o| p.ovr as f64 - o)
-                        .unwrap_or(0.0)
-                        .max(last_ovr - last_ovr),
+                    ovr_gain: prev_ovr.map(|o| p.ovr as f64 - o).unwrap_or(0.0).max(0.0),
                     def_rating: (p.attrs.get(Attr::InteriorDef) * 0.4
                         + p.attrs.get(Attr::PerimeterDef) * 0.4
                         + p.attrs.get(Attr::Block) * 0.1
@@ -1029,7 +1024,7 @@ impl League {
         self.fa_day_index += 1;
         if let Some(pid) = self.user.player {
             if self.p(pid).flags.contains("waiting")
-                && self.fa_day_index % 7 == 0
+                && self.fa_day_index.is_multiple_of(7)
                 && matches!(self.p(pid).affiliation, Affiliation::FreeAgent)
             {
                 self.pm(pid).flags.remove("waiting");
@@ -1147,7 +1142,7 @@ impl League {
             }
             // does he improve us?
             let improves = v > self.nth_best_value(t, 8) - 2.0;
-            if !improves && self.team(t).roster.len() >= self.rules.roster_min as usize + 1 {
+            if !improves && self.team(t).roster.len() > self.rules.roster_min as usize {
                 continue;
             }
             // willingness

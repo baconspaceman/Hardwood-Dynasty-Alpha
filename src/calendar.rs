@@ -137,7 +137,7 @@ impl League {
             }
             Phase::FreeAgency => {
                 self.fa_day();
-                if self.fa_day_index % 10 == 0 {
+                if self.fa_day_index.is_multiple_of(10) {
                     self.monthly_life_tick();
                 }
                 if self.fa_day_index >= FA_DAYS {

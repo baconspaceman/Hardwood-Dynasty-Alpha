@@ -88,7 +88,7 @@ impl League {
                 let id = self.clubs.len() as ClubId;
                 let tier = if k == 0 && EURO_CODES.contains(&c.code.as_str()) && strength >= 3.0 {
                     1
-                } else if k < (n + 1) / 2 {
+                } else if k < n.div_ceil(2) {
                     2
                 } else {
                     3
@@ -491,7 +491,7 @@ impl League {
         if top.len() < 2 {
             return top.first().copied().unwrap_or(0);
         }
-        let mut play = |a: ClubId, b: ClubId, this: &mut League, rng: &mut Rng| -> ClubId {
+        let play = |a: ClubId, b: ClubId, this: &mut League, rng: &mut Rng| -> ClubId {
             let (ta, tb) = (this.club_team(a), this.club_team(b));
             let mut wa = 0;
             let mut wb = 0;

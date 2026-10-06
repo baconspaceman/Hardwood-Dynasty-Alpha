@@ -358,7 +358,7 @@ impl League {
             return Err("Only a GM or Owner fires staff.".into());
         }
         let tm = self.team_mut(t);
-        let name;
+
         if tm.head_coach == Some(person) {
             tm.head_coach = None;
         } else if tm.trainer == Some(person) {
@@ -370,7 +370,7 @@ impl League {
         } else {
             return Err("That person doesn't work for you.".into());
         }
-        name = self.people[person as usize].name.clone();
+        let name = self.people[person as usize].name.clone();
         self.people[person as usize].team = None;
         // dead money = remaining salary
         let sal = self.people[person as usize].salary;
@@ -768,7 +768,7 @@ impl League {
     pub fn user_player_day_hook(&mut self, day: u32, notes: &mut Vec<String>) {
         let Some(pid) = self.user.player else { return };
         let (aff, injured) = (self.p(pid).affiliation.clone(), self.p(pid).is_injured());
-        if aff != Affiliation::HighSchool || day % 3 != 0 || injured {
+        if aff != Affiliation::HighSchool || !day.is_multiple_of(3) || injured {
             return;
         }
         // eligibility

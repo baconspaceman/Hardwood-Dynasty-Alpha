@@ -501,12 +501,12 @@ impl League {
             }
         }
         // weekly: AI trades, mood & story updates
-        if day % 7 == 0 {
+        if day.is_multiple_of(7) {
             self.with_rng(|l, rng| l.ai_in_season_moves(rng));
             self.update_moods_and_chemistry();
             self.story_weekly();
         }
-        if day % 30 == 0 {
+        if day.is_multiple_of(30) {
             self.monthly_life_tick();
         }
         // Re-tune the engine once the season's real health and fatigue patterns are in place.
@@ -801,13 +801,8 @@ impl League {
             .clone();
         let cands = self.award_candidates(false);
         let mut rng = Rng::from_label(self.seed, &format!("allstar-{}", self.year));
-        let res = crate::awards::decide(
-            &def,
-            &cands,
-            (self.day.max(1)) as u16 * 1,
-            self.year,
-            &mut rng,
-        )?;
+        let res =
+            crate::awards::decide(&def, &cands, (self.day.max(1)) as u16, self.year, &mut rng)?;
         let mut east: Vec<PlayerId> = vec![];
         let mut west: Vec<PlayerId> = vec![];
         for (id, _) in &res.winners {

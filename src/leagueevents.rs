@@ -78,10 +78,8 @@ impl<'a> EventContext for LeagueCtx<'a> {
             }
             "league.credibility" => {}
             "news" => self.log.push(e.text.clone()),
-            "flag" => {
-                if !e.text.is_empty() {
-                    self.league.events_fired.push(e.text.clone());
-                }
+            "flag" if !e.text.is_empty() => {
+                self.league.events_fired.push(e.text.clone());
             }
             _ => {}
         }

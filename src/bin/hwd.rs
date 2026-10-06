@@ -963,7 +963,7 @@ fn league_command(s: &mut Session, l: &mut League, cmd: &str, a: &[&str]) -> boo
         }
         "college" => cmd_college(l, a),
         "recruit" => {
-            if a.len() >= 1 {
+            if !a.is_empty() {
                 let pts = a.last().and_then(|x| x.parse::<f64>().ok()).unwrap_or(10.0);
                 let name = if a.last().and_then(|x| x.parse::<f64>().ok()).is_some() {
                     a[..a.len() - 1].join(" ")
@@ -1323,13 +1323,12 @@ fn cmd_standings(l: &League, a: &[&str]) {
     for c in confs {
         println!("\n{} Conference", l.conference_name(c.unwrap()));
         println!(
-            "  {}  {}  {}  {}  {}  {}",
+            "  {}  {}  {}  {}  {}  Strk",
             pad("Team", 26),
             rpad("W", 3),
             rpad("L", 3),
             rpad("PCT", 5),
-            rpad("DIFF", 6),
-            "Strk"
+            rpad("DIFF", 6)
         );
         for t in l.standings(c) {
             let tm = l.team(t);
@@ -1363,7 +1362,7 @@ fn cmd_roster(l: &League, t: TeamId) {
         l.gm_of(t).map(|c| c.name.clone()).unwrap_or_default()
     );
     println!(
-        "{} {} {} {} {} {} {} {}  {}",
+        "{} {} {} {} {} {} {} {}  Status",
         pad("Player", 22),
         pad("Pos", 3),
         rpad("Age", 3),
@@ -1371,8 +1370,7 @@ fn cmd_roster(l: &League, t: TeamId) {
         rpad("OVR", 3),
         rpad("POT", 3),
         rpad("PPG", 5),
-        rpad("Salary", 8),
-        "Status"
+        rpad("Salary", 8)
     );
     let mut ids = tm.roster.clone();
     ids.sort_by(|&a, &b| l.p(b).ovr.cmp(&l.p(a).ovr));
@@ -1723,12 +1721,11 @@ fn cmd_awards(l: &League, a: &[&str]) {
 
 fn cmd_history(l: &League) {
     println!(
-        "{} {} {} {} {}",
+        "{} {} {} {} Finals MVP",
         pad("Season", 7),
         pad("Champion", 26),
         pad("Runner-up", 26),
-        pad("MVP", 20),
-        "Finals MVP"
+        pad("MVP", 20)
     );
     for h in l.history.iter().rev().take(25).rev() {
         println!(
@@ -1812,14 +1809,13 @@ fn cmd_draftboard(l: &League) {
         );
     }
     println!(
-        "{} {} {} {} {} {}  {}",
+        "{} {} {} {} {} {}  From",
         pad("Prospect", 22),
         pad("Pos", 3),
         rpad("Age", 3),
         rpad("Ht", 5),
         rpad("~OVR", 5),
-        rpad("~POT", 5),
-        "From"
+        rpad("~POT", 5)
     );
     for (id, o, pt) in l.draft_board(l.user.team, 30) {
         let p = l.p(id);
@@ -1845,13 +1841,12 @@ fn cmd_fa(l: &League, a: &[&str]) {
     let mut v = l.free_agents.clone();
     v.sort_by(|&x, &y| l.p(y).ovr.cmp(&l.p(x).ovr));
     println!(
-        "{} {} {} {} {}  {}",
+        "{} {} {} {} {}  Years",
         pad("Free agent", 22),
         pad("Pos", 3),
         rpad("Age", 3),
         rpad("OVR", 3),
-        rpad("Asks", 9),
-        "Years"
+        rpad("Asks", 9)
     );
     for id in v.into_iter().take(n) {
         let p = l.p(id);
