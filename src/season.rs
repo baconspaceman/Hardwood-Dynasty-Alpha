@@ -522,6 +522,10 @@ impl League {
         if day % 30 == 0 {
             self.monthly_life_tick();
         }
+        // Re-tune the engine once the season's real health and fatigue patterns are in place.
+        if day == 20 || day == 60 {
+            self.calibrate_engine();
+        }
     }
 
     /// Simulate one game between two teams and apply everything that follows from it.

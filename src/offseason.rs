@@ -70,7 +70,7 @@ impl League {
                         + p.attrs.get(Attr::Block) * 0.1
                         + p.attrs.get(Attr::Steal) * 0.1)
                         - 40.0,
-                    rookie: p.pro_seasons() <= 1,
+                    rookie: p.years_pro == 0,
                     position_group: ppos,
                 });
             }
@@ -510,6 +510,9 @@ impl League {
                 }
                 None => (1.0, 1.0),
             };
+            if self.players[i].is_active_pro() {
+                self.players[i].years_pro = self.players[i].years_pro.saturating_add(1);
+            }
             let ctx = DevContext {
                 coaching,
                 facilities,

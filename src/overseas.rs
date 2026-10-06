@@ -74,7 +74,7 @@ impl League {
             let w = names::country_weight(&c, self.year.max(1990)).max(0.0);
             // number of clubs by basketball strength of the country (use a mid-era weight so countries exist early too)
             let strength = c.weight.iter().map(|(_, v)| *v).fold(0.0, f64::max);
-            let n = ((strength * 1.4).round() as usize + 2).clamp(2, 11);
+            let n = ((strength.sqrt() * 1.3).round() as usize).clamp(1, 6);
             let _ = w;
             let mut used: Vec<String> = vec![];
             for k in 0..n {
