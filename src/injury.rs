@@ -74,7 +74,19 @@ fn one() -> f64 {
 }
 
 #[allow(clippy::too_many_arguments)]
-fn def(id: &str, name: &str, part: &str, sev: Severity, weight: f64, median: f64, max: u16, ce: f64, perm: &[(&str, f64)], game_bias: f64, recurrence: f64) -> InjuryDef {
+fn def(
+    id: &str,
+    name: &str,
+    part: &str,
+    sev: Severity,
+    weight: f64,
+    median: f64,
+    max: u16,
+    ce: f64,
+    perm: &[(&str, f64)],
+    game_bias: f64,
+    recurrence: f64,
+) -> InjuryDef {
     InjuryDef {
         id: id.into(),
         name: name.into(),
@@ -95,56 +107,609 @@ pub fn builtin_injuries() -> Vec<InjuryDef> {
     use Severity::*;
     vec![
         // ---- Day to day ----
-        def("sore_ankle", "Sore ankle", "ankle", DayToDay, 9.0, 2.0, 6, 0.0, &[], 1.0, 1.5),
-        def("sore_knee", "Knee soreness", "knee", DayToDay, 6.0, 2.0, 6, 0.0, &[], 0.7, 1.4),
-        def("sore_back", "Back spasms", "back", DayToDay, 6.0, 2.0, 7, 0.0, &[], 0.6, 1.6),
-        def("illness", "Flu-like illness", "illness", DayToDay, 6.0, 2.0, 6, 0.0, &[], 0.0, 1.0),
-        def("bruise", "Thigh/hip contusion", "hip", DayToDay, 5.0, 2.0, 5, 0.0, &[], 1.3, 1.0),
-        def("finger_jam", "Jammed finger", "hand", DayToDay, 4.0, 2.0, 6, 0.0, &[], 1.4, 1.0),
-        def("eye_poke", "Eye injury", "face", DayToDay, 1.5, 2.0, 5, 0.0, &[], 1.8, 1.0),
-        def("tight_hamstring", "Tight hamstring", "hamstring", DayToDay, 4.0, 2.0, 5, 0.0, &[], 0.8, 1.8),
+        def(
+            "sore_ankle",
+            "Sore ankle",
+            "ankle",
+            DayToDay,
+            9.0,
+            2.0,
+            6,
+            0.0,
+            &[],
+            1.0,
+            1.5,
+        ),
+        def(
+            "sore_knee",
+            "Knee soreness",
+            "knee",
+            DayToDay,
+            6.0,
+            2.0,
+            6,
+            0.0,
+            &[],
+            0.7,
+            1.4,
+        ),
+        def(
+            "sore_back",
+            "Back spasms",
+            "back",
+            DayToDay,
+            6.0,
+            2.0,
+            7,
+            0.0,
+            &[],
+            0.6,
+            1.6,
+        ),
+        def(
+            "illness",
+            "Flu-like illness",
+            "illness",
+            DayToDay,
+            6.0,
+            2.0,
+            6,
+            0.0,
+            &[],
+            0.0,
+            1.0,
+        ),
+        def(
+            "bruise",
+            "Thigh/hip contusion",
+            "hip",
+            DayToDay,
+            5.0,
+            2.0,
+            5,
+            0.0,
+            &[],
+            1.3,
+            1.0,
+        ),
+        def(
+            "finger_jam",
+            "Jammed finger",
+            "hand",
+            DayToDay,
+            4.0,
+            2.0,
+            6,
+            0.0,
+            &[],
+            1.4,
+            1.0,
+        ),
+        def(
+            "eye_poke",
+            "Eye injury",
+            "face",
+            DayToDay,
+            1.5,
+            2.0,
+            5,
+            0.0,
+            &[],
+            1.8,
+            1.0,
+        ),
+        def(
+            "tight_hamstring",
+            "Tight hamstring",
+            "hamstring",
+            DayToDay,
+            4.0,
+            2.0,
+            5,
+            0.0,
+            &[],
+            0.8,
+            1.8,
+        ),
         // ---- Minor ----
-        def("ankle_sprain", "Sprained ankle", "ankle", Minor, 9.0, 6.0, 20, 0.0, &[], 1.2, 1.7),
-        def("hamstring_strain", "Hamstring strain", "hamstring", Minor, 4.0, 8.0, 25, 0.0, &[], 0.8, 2.0),
-        def("groin_strain", "Groin strain", "groin", Minor, 3.5, 7.0, 22, 0.0, &[], 0.8, 1.8),
-        def("calf_strain", "Calf strain", "calf", Minor, 3.0, 8.0, 22, 0.0, &[], 0.8, 1.8),
-        def("wrist_sprain", "Sprained wrist", "wrist", Minor, 2.5, 7.0, 20, 0.0, &[], 1.4, 1.2),
-        def("fractured_finger", "Fractured finger", "hand", Minor, 2.5, 9.0, 25, 0.0, &[], 1.4, 1.0),
-        def("rib_contusion", "Bruised ribs", "ribs", Minor, 2.0, 6.0, 15, 0.0, &[], 1.5, 1.0),
-        def("shoulder_sprain", "Shoulder sprain", "shoulder", Minor, 2.5, 8.0, 25, 0.0, &[], 1.2, 1.5),
-        def("back_strain", "Lower back strain", "back", Minor, 4.0, 8.0, 25, 0.0, &[], 0.5, 2.0),
+        def(
+            "ankle_sprain",
+            "Sprained ankle",
+            "ankle",
+            Minor,
+            9.0,
+            6.0,
+            20,
+            0.0,
+            &[],
+            1.2,
+            1.7,
+        ),
+        def(
+            "hamstring_strain",
+            "Hamstring strain",
+            "hamstring",
+            Minor,
+            4.0,
+            8.0,
+            25,
+            0.0,
+            &[],
+            0.8,
+            2.0,
+        ),
+        def(
+            "groin_strain",
+            "Groin strain",
+            "groin",
+            Minor,
+            3.5,
+            7.0,
+            22,
+            0.0,
+            &[],
+            0.8,
+            1.8,
+        ),
+        def(
+            "calf_strain",
+            "Calf strain",
+            "calf",
+            Minor,
+            3.0,
+            8.0,
+            22,
+            0.0,
+            &[],
+            0.8,
+            1.8,
+        ),
+        def(
+            "wrist_sprain",
+            "Sprained wrist",
+            "wrist",
+            Minor,
+            2.5,
+            7.0,
+            20,
+            0.0,
+            &[],
+            1.4,
+            1.2,
+        ),
+        def(
+            "fractured_finger",
+            "Fractured finger",
+            "hand",
+            Minor,
+            2.5,
+            9.0,
+            25,
+            0.0,
+            &[],
+            1.4,
+            1.0,
+        ),
+        def(
+            "rib_contusion",
+            "Bruised ribs",
+            "ribs",
+            Minor,
+            2.0,
+            6.0,
+            15,
+            0.0,
+            &[],
+            1.5,
+            1.0,
+        ),
+        def(
+            "shoulder_sprain",
+            "Shoulder sprain",
+            "shoulder",
+            Minor,
+            2.5,
+            8.0,
+            25,
+            0.0,
+            &[],
+            1.2,
+            1.5,
+        ),
+        def(
+            "back_strain",
+            "Lower back strain",
+            "back",
+            Minor,
+            4.0,
+            8.0,
+            25,
+            0.0,
+            &[],
+            0.5,
+            2.0,
+        ),
         // ---- Moderate ----
-        def("high_ankle", "High ankle sprain", "ankle", Moderate, 2.5, 22.0, 50, 0.0, &[("lateral_quickness", 0.5)], 1.2, 2.0),
-        def("hamstring_tear", "Torn hamstring (partial)", "hamstring", Moderate, 1.6, 24.0, 55, 0.0, &[("speed", 0.8)], 0.8, 2.4),
-        def("sprained_knee", "Sprained knee (MCL)", "knee", Moderate, 2.2, 22.0, 50, 0.0, &[], 1.1, 1.8),
-        def("broken_hand", "Broken hand", "hand", Moderate, 1.2, 28.0, 55, 0.0, &[], 1.2, 1.0),
-        def("broken_nose", "Broken nose / facial fracture", "face", Moderate, 0.8, 12.0, 30, 0.0, &[], 1.6, 0.5),
-        def("sports_hernia", "Sports hernia", "groin", Moderate, 0.8, 24.0, 55, 0.0, &[], 0.5, 1.5),
-        def("concussion", "Concussion", "head", Moderate, 2.2, 8.0, 40, 0.0005, &[], 1.4, 2.2),
-        def("plantar_fasciitis", "Plantar fasciitis", "foot", Moderate, 1.2, 18.0, 45, 0.0, &[("speed", 0.3)], 0.3, 2.0),
-        def("tendinitis", "Patellar tendinitis", "knee", Moderate, 1.4, 20.0, 50, 0.0, &[("vertical", 0.4)], 0.3, 2.5),
+        def(
+            "high_ankle",
+            "High ankle sprain",
+            "ankle",
+            Moderate,
+            2.5,
+            22.0,
+            50,
+            0.0,
+            &[("lateral_quickness", 0.5)],
+            1.2,
+            2.0,
+        ),
+        def(
+            "hamstring_tear",
+            "Torn hamstring (partial)",
+            "hamstring",
+            Moderate,
+            1.6,
+            24.0,
+            55,
+            0.0,
+            &[("speed", 0.8)],
+            0.8,
+            2.4,
+        ),
+        def(
+            "sprained_knee",
+            "Sprained knee (MCL)",
+            "knee",
+            Moderate,
+            2.2,
+            22.0,
+            50,
+            0.0,
+            &[],
+            1.1,
+            1.8,
+        ),
+        def(
+            "broken_hand",
+            "Broken hand",
+            "hand",
+            Moderate,
+            1.2,
+            28.0,
+            55,
+            0.0,
+            &[],
+            1.2,
+            1.0,
+        ),
+        def(
+            "broken_nose",
+            "Broken nose / facial fracture",
+            "face",
+            Moderate,
+            0.8,
+            12.0,
+            30,
+            0.0,
+            &[],
+            1.6,
+            0.5,
+        ),
+        def(
+            "sports_hernia",
+            "Sports hernia",
+            "groin",
+            Moderate,
+            0.8,
+            24.0,
+            55,
+            0.0,
+            &[],
+            0.5,
+            1.5,
+        ),
+        def(
+            "concussion",
+            "Concussion",
+            "head",
+            Moderate,
+            2.2,
+            8.0,
+            40,
+            0.0005,
+            &[],
+            1.4,
+            2.2,
+        ),
+        def(
+            "plantar_fasciitis",
+            "Plantar fasciitis",
+            "foot",
+            Moderate,
+            1.2,
+            18.0,
+            45,
+            0.0,
+            &[("speed", 0.3)],
+            0.3,
+            2.0,
+        ),
+        def(
+            "tendinitis",
+            "Patellar tendinitis",
+            "knee",
+            Moderate,
+            1.4,
+            20.0,
+            50,
+            0.0,
+            &[("vertical", 0.4)],
+            0.3,
+            2.5,
+        ),
         // ---- Serious ----
-        def("meniscus", "Torn meniscus", "knee", Serious, 1.1, 40.0, 70, 0.002, &[("lateral_quickness", 0.8), ("vertical", 0.8)], 1.0, 1.8),
-        def("broken_leg_tib", "Fractured tibia/fibula", "leg", Serious, 0.35, 60.0, 90, 0.01, &[("vertical", 1.0)], 1.5, 1.2),
-        def("fractured_wrist", "Fractured wrist", "wrist", Serious, 0.6, 38.0, 65, 0.0, &[("ball_handle", 0.5)], 1.3, 1.0),
-        def("fractured_foot", "Fractured foot (Jones)", "foot", Serious, 0.7, 55.0, 90, 0.004, &[("speed", 1.0), ("vertical", 0.6)], 0.8, 2.0),
-        def("shoulder_sublux", "Dislocated shoulder", "shoulder", Serious, 0.5, 45.0, 75, 0.002, &[("strength", 0.6)], 1.4, 2.4),
-        def("herniated_disc", "Herniated disc", "back", Serious, 0.4, 50.0, 85, 0.02, &[("agility", 1.2), ("vertical", 1.0)], 0.4, 2.5),
-        def("stress_fracture", "Stress fracture", "leg", Serious, 0.6, 50.0, 85, 0.006, &[("vertical", 0.7)], 0.1, 2.2),
+        def(
+            "meniscus",
+            "Torn meniscus",
+            "knee",
+            Serious,
+            1.1,
+            40.0,
+            70,
+            0.002,
+            &[("lateral_quickness", 0.8), ("vertical", 0.8)],
+            1.0,
+            1.8,
+        ),
+        def(
+            "broken_leg_tib",
+            "Fractured tibia/fibula",
+            "leg",
+            Serious,
+            0.35,
+            60.0,
+            90,
+            0.01,
+            &[("vertical", 1.0)],
+            1.5,
+            1.2,
+        ),
+        def(
+            "fractured_wrist",
+            "Fractured wrist",
+            "wrist",
+            Serious,
+            0.6,
+            38.0,
+            65,
+            0.0,
+            &[("ball_handle", 0.5)],
+            1.3,
+            1.0,
+        ),
+        def(
+            "fractured_foot",
+            "Fractured foot (Jones)",
+            "foot",
+            Serious,
+            0.7,
+            55.0,
+            90,
+            0.004,
+            &[("speed", 1.0), ("vertical", 0.6)],
+            0.8,
+            2.0,
+        ),
+        def(
+            "shoulder_sublux",
+            "Dislocated shoulder",
+            "shoulder",
+            Serious,
+            0.5,
+            45.0,
+            75,
+            0.002,
+            &[("strength", 0.6)],
+            1.4,
+            2.4,
+        ),
+        def(
+            "herniated_disc",
+            "Herniated disc",
+            "back",
+            Serious,
+            0.4,
+            50.0,
+            85,
+            0.02,
+            &[("agility", 1.2), ("vertical", 1.0)],
+            0.4,
+            2.5,
+        ),
+        def(
+            "stress_fracture",
+            "Stress fracture",
+            "leg",
+            Serious,
+            0.6,
+            50.0,
+            85,
+            0.006,
+            &[("vertical", 0.7)],
+            0.1,
+            2.2,
+        ),
         // ---- Major ----
-        def("acl", "Torn ACL", "knee", Major, 0.55, 150.0, 260, 0.035, &[("speed", 2.0), ("agility", 2.0), ("vertical", 2.5), ("lateral_quickness", 2.0)], 1.5, 1.8),
-        def("achilles", "Ruptured Achilles tendon", "achilles", Major, 0.22, 175.0, 280, 0.12, &[("speed", 3.5), ("vertical", 4.0), ("agility", 2.5), ("lateral_quickness", 3.0)], 1.0, 2.0),
-        def("patellar", "Ruptured patellar tendon", "knee", Major, 0.12, 170.0, 280, 0.12, &[("vertical", 4.0), ("speed", 2.5)], 1.0, 1.8),
-        def("microfracture", "Microfracture surgery (knee)", "knee", Major, 0.18, 140.0, 240, 0.10, &[("vertical", 3.0), ("speed", 2.0), ("agility", 2.0)], 0.5, 2.5),
-        def("broken_femur", "Broken femur", "leg", Major, 0.05, 140.0, 260, 0.08, &[("vertical", 3.0), ("speed", 2.5)], 1.6, 1.2),
-        def("multi_ligament", "Multi-ligament knee injury", "knee", SeasonEnding, 0.04, 220.0, 380, 0.30, &[("vertical", 4.5), ("speed", 4.0), ("agility", 4.0)], 2.0, 2.0),
-        def("labrum", "Torn labrum (shoulder)", "shoulder", Major, 0.15, 110.0, 200, 0.02, &[("strength", 1.0), ("mid_range", 1.0)], 1.0, 1.8),
-        def("lisfranc", "Lisfranc foot injury", "foot", Major, 0.12, 120.0, 220, 0.06, &[("speed", 2.0), ("vertical", 2.0)], 1.0, 1.8),
-        def("spinal_fusion", "Spinal fusion surgery", "back", SeasonEnding, 0.06, 200.0, 360, 0.55, &[("agility", 3.0), ("vertical", 3.0), ("speed", 2.0)], 0.2, 2.5),
+        def(
+            "acl",
+            "Torn ACL",
+            "knee",
+            Major,
+            0.55,
+            150.0,
+            260,
+            0.035,
+            &[
+                ("speed", 2.0),
+                ("agility", 2.0),
+                ("vertical", 2.5),
+                ("lateral_quickness", 2.0),
+            ],
+            1.5,
+            1.8,
+        ),
+        def(
+            "achilles",
+            "Ruptured Achilles tendon",
+            "achilles",
+            Major,
+            0.22,
+            175.0,
+            280,
+            0.12,
+            &[
+                ("speed", 3.5),
+                ("vertical", 4.0),
+                ("agility", 2.5),
+                ("lateral_quickness", 3.0),
+            ],
+            1.0,
+            2.0,
+        ),
+        def(
+            "patellar",
+            "Ruptured patellar tendon",
+            "knee",
+            Major,
+            0.12,
+            170.0,
+            280,
+            0.12,
+            &[("vertical", 4.0), ("speed", 2.5)],
+            1.0,
+            1.8,
+        ),
+        def(
+            "microfracture",
+            "Microfracture surgery (knee)",
+            "knee",
+            Major,
+            0.18,
+            140.0,
+            240,
+            0.10,
+            &[("vertical", 3.0), ("speed", 2.0), ("agility", 2.0)],
+            0.5,
+            2.5,
+        ),
+        def(
+            "broken_femur",
+            "Broken femur",
+            "leg",
+            Major,
+            0.05,
+            140.0,
+            260,
+            0.08,
+            &[("vertical", 3.0), ("speed", 2.5)],
+            1.6,
+            1.2,
+        ),
+        def(
+            "multi_ligament",
+            "Multi-ligament knee injury",
+            "knee",
+            SeasonEnding,
+            0.04,
+            220.0,
+            380,
+            0.30,
+            &[("vertical", 4.5), ("speed", 4.0), ("agility", 4.0)],
+            2.0,
+            2.0,
+        ),
+        def(
+            "labrum",
+            "Torn labrum (shoulder)",
+            "shoulder",
+            Major,
+            0.15,
+            110.0,
+            200,
+            0.02,
+            &[("strength", 1.0), ("mid_range", 1.0)],
+            1.0,
+            1.8,
+        ),
+        def(
+            "lisfranc",
+            "Lisfranc foot injury",
+            "foot",
+            Major,
+            0.12,
+            120.0,
+            220,
+            0.06,
+            &[("speed", 2.0), ("vertical", 2.0)],
+            1.0,
+            1.8,
+        ),
+        def(
+            "spinal_fusion",
+            "Spinal fusion surgery",
+            "back",
+            SeasonEnding,
+            0.06,
+            200.0,
+            360,
+            0.55,
+            &[("agility", 3.0), ("vertical", 3.0), ("speed", 2.0)],
+            0.2,
+            2.5,
+        ),
         // ---- Career threatening ----
-        def("cardiac", "Cardiac condition found in screening", "heart", CareerThreatening, 0.025, 120.0, 400, 0.65, &[("stamina", 3.0)], 0.0, 1.0),
-        def("spinal_cord", "Spinal cord injury", "spine", CareerThreatening, 0.01, 300.0, 600, 0.90, &[("agility", 5.0), ("speed", 5.0), ("vertical", 5.0)], 1.5, 1.0),
-        InjuryDef { from_year: 2010, ..def("post_concussion", "Post-concussion syndrome", "head", CareerThreatening, 0.04, 180.0, 500, 0.45, &[("shot_iq", 2.0), ("def_consistency", 2.0)], 0.5, 2.0) },
+        def(
+            "cardiac",
+            "Cardiac condition found in screening",
+            "heart",
+            CareerThreatening,
+            0.025,
+            120.0,
+            400,
+            0.65,
+            &[("stamina", 3.0)],
+            0.0,
+            1.0,
+        ),
+        def(
+            "spinal_cord",
+            "Spinal cord injury",
+            "spine",
+            CareerThreatening,
+            0.01,
+            300.0,
+            600,
+            0.90,
+            &[("agility", 5.0), ("speed", 5.0), ("vertical", 5.0)],
+            1.5,
+            1.0,
+        ),
+        InjuryDef {
+            from_year: 2010,
+            ..def(
+                "post_concussion",
+                "Post-concussion syndrome",
+                "head",
+                CareerThreatening,
+                0.04,
+                180.0,
+                500,
+                0.45,
+                &[("shot_iq", 2.0), ("def_consistency", 2.0)],
+                0.5,
+                2.0,
+            )
+        },
     ]
 }
 
@@ -192,7 +757,15 @@ pub struct InjuryParams {
 
 impl InjuryParams {
     pub fn standard(year: Season) -> Self {
-        InjuryParams { frequency: 1.0, severity: 1.0, career_ending: 1.0, permanent: 1.0, in_game: true, medical: 50.0, year }
+        InjuryParams {
+            frequency: 1.0,
+            severity: 1.0,
+            career_ending: 1.0,
+            permanent: 1.0,
+            in_game: true,
+            medical: 50.0,
+            year,
+        }
     }
 }
 
@@ -205,8 +778,21 @@ pub fn risk_multiplier(p: &Player, season: Season, params: &InjuryParams) -> f64
     let tired_f = 1.0 + ((60.0 - p.fitness as f64) / 100.0).max(0.0);
     let hist_f = 1.0 + (p.injury_history.len() as f64 * 0.015).min(0.3);
     let med_f = 1.25 - params.medical / 200.0; // medical 50 → 1.0, 90 → 0.8
-    let badge_f = 1.0 + p.badges.iter().filter(|b| b.id == "iron_man").map(|b| -0.08 * b.tier as i32 as f64).sum::<f64>();
-    (age_f * wear_f * dur_f.max(0.3) * tired_f * hist_f * med_f * badge_f * p.hidden.injury_prone as f64).clamp(0.1, 6.0)
+    let badge_f = 1.0
+        + p.badges
+            .iter()
+            .filter(|b| b.id == "iron_man")
+            .map(|b| -0.08 * b.tier as i32 as f64)
+            .sum::<f64>();
+    (age_f
+        * wear_f
+        * dur_f.max(0.3)
+        * tired_f
+        * hist_f
+        * med_f
+        * badge_f
+        * p.hidden.injury_prone as f64)
+        .clamp(0.1, 6.0)
 }
 
 /// Base chance of an injury per 100 minutes on the court (injuries that cost at least a game).
@@ -215,16 +801,31 @@ pub const BASE_PER_100_MIN: f64 = 0.0175;
 pub const BASE_PER_DAY: f64 = 0.00085;
 
 /// Roll a specific injury given that one has happened.
-fn choose_def<'a>(rng: &mut Rng, catalog: &'a [InjuryDef], in_game: bool, year: Season, p: &Player) -> &'a InjuryDef {
+fn choose_def<'a>(
+    rng: &mut Rng,
+    catalog: &'a [InjuryDef],
+    in_game: bool,
+    year: Season,
+    p: &Player,
+) -> &'a InjuryDef {
     let w: Vec<f64> = catalog
         .iter()
         .map(|d| {
             if d.from_year > year {
                 return 0.0;
             }
-            let mut w = d.weight * if in_game { d.game_bias } else { (2.0 - d.game_bias).max(0.0) };
+            let mut w = d.weight
+                * if in_game {
+                    d.game_bias
+                } else {
+                    (2.0 - d.game_bias).max(0.0)
+                };
             // repeat injuries to the same body part are more likely
-            let repeats = p.injury_history.iter().filter(|h| h.body_part == d.body_part).count() as f64;
+            let repeats = p
+                .injury_history
+                .iter()
+                .filter(|h| h.body_part == d.body_part)
+                .count() as f64;
             w *= 1.0 + repeats * 0.15 * (d.recurrence - 1.0).max(0.0);
             w
         })
@@ -233,7 +834,13 @@ fn choose_def<'a>(rng: &mut Rng, catalog: &'a [InjuryDef], in_game: bool, year: 
 }
 
 /// Create an injury from a definition for this player.
-pub fn make_injury(rng: &mut Rng, d: &InjuryDef, p: &Player, season: Season, params: &InjuryParams) -> Injury {
+pub fn make_injury(
+    rng: &mut Rng,
+    d: &InjuryDef,
+    p: &Player,
+    season: Season,
+    params: &InjuryParams,
+) -> Injury {
     let age = (season - p.birth_year) as f64;
     let sigma = 0.55;
     let med = d.median_games.max(1.0);
@@ -241,20 +848,35 @@ pub fn make_injury(rng: &mut Rng, d: &InjuryDef, p: &Player, season: Season, par
     // Older players heal slower; good medical staff heals faster.
     games *= 1.0 + ((age - 28.0) * 0.02).max(0.0);
     games *= 1.35 - params.medical / 150.0;
-    let games = games.round().clamp(1.0, d.max_games as f64 * params.severity.max(1.0)) as u16;
+    let games = games
+        .round()
+        .clamp(1.0, d.max_games as f64 * params.severity.max(1.0)) as u16;
 
     // Career-ending check.
     let ce_base = d.career_ending * params.career_ending;
     let age_mod = 1.0 + ((age - 28.0) * 0.06).max(0.0);
     let wear_mod = 1.0 + p.wear as f64 / 100.0;
-    let history_mod = 1.0 + p.injury_history.iter().filter(|h| h.body_part == d.body_part).count() as f64 * 0.35;
+    let history_mod = 1.0
+        + p.injury_history
+            .iter()
+            .filter(|h| h.body_part == d.body_part)
+            .count() as f64
+            * 0.35;
     let ce = rng.chance((ce_base * age_mod * wear_mod * history_mod).min(0.95));
 
     // Permanent loss: scaled by setting, age, and whether it happened to a body part before.
     let permanent: Vec<(String, f64)> = d
         .permanent
         .iter()
-        .map(|(k, v)| (k.clone(), (v * params.permanent * (0.7 + 0.04 * (age - 20.0).max(0.0)) * rng.uniform(0.6, 1.3)).max(0.0)))
+        .map(|(k, v)| {
+            (
+                k.clone(),
+                (v * params.permanent
+                    * (0.7 + 0.04 * (age - 20.0).max(0.0))
+                    * rng.uniform(0.6, 1.3))
+                .max(0.0),
+            )
+        })
         .collect();
 
     let ramp = match d.severity {
@@ -280,11 +902,23 @@ pub fn make_injury(rng: &mut Rng, d: &InjuryDef, p: &Player, season: Season, par
 
 /// Decide whether an injury happens for `exposure` units. For in-game use `exposure = minutes/100`;
 /// for off-day checks use `exposure = days` with `in_game = false`.
-pub fn roll_injury(rng: &mut Rng, catalog: &[InjuryDef], p: &Player, season: Season, exposure: f64, in_game: bool, params: &InjuryParams) -> Option<Injury> {
+pub fn roll_injury(
+    rng: &mut Rng,
+    catalog: &[InjuryDef],
+    p: &Player,
+    season: Season,
+    exposure: f64,
+    in_game: bool,
+    params: &InjuryParams,
+) -> Option<Injury> {
     if params.frequency <= 0.0 || p.injury.is_some() {
         return None;
     }
-    let base = if in_game { BASE_PER_100_MIN } else { BASE_PER_DAY };
+    let base = if in_game {
+        BASE_PER_100_MIN
+    } else {
+        BASE_PER_DAY
+    };
     let chance = base * exposure * risk_multiplier(p, season, params) * params.frequency;
     if !rng.chance(chance) {
         return None;
@@ -293,16 +927,30 @@ pub fn roll_injury(rng: &mut Rng, catalog: &[InjuryDef], p: &Player, season: Sea
     Some(make_injury(rng, d, p, season, params))
 }
 
+/// Create an injury that is *known* to have happened (e.g. a player was hurt in a game).
+pub fn random_injury(
+    rng: &mut Rng,
+    catalog: &[InjuryDef],
+    p: &Player,
+    season: Season,
+    in_game: bool,
+    params: &InjuryParams,
+) -> Injury {
+    let d = choose_def(rng, catalog, in_game, params.year, p);
+    make_injury(rng, d, p, season, params)
+}
+
 /// Apply an injury to a player. If it is career-ending he is retired by the caller.
 pub fn start_injury(p: &mut Player, inj: Injury) {
     p.fitness = (p.fitness - 15.0).max(0.0);
-    p.wear = (p.wear + match inj.severity {
-        Severity::DayToDay => 0.2,
-        Severity::Minor => 1.0,
-        Severity::Moderate => 2.5,
-        Severity::Serious => 5.0,
-        _ => 9.0,
-    })
+    p.wear = (p.wear
+        + match inj.severity {
+            Severity::DayToDay => 0.2,
+            Severity::Minor => 1.0,
+            Severity::Moderate => 2.5,
+            Severity::Serious => 5.0,
+            _ => 9.0,
+        })
     .min(100.0);
     if inj.def_id == "concussion" || inj.def_id == "post_concussion" {
         p.concussions = p.concussions.saturating_add(1);
@@ -324,7 +972,13 @@ pub fn heal_one_game(p: &mut Player, medical: f64, rng: &mut Rng) -> Option<Inju
     }
     inj.games_remaining = inj.games_remaining.saturating_sub(step);
     if inj.games_remaining == 0 {
-        let rec = InjuryRecord { season: inj.season, name: inj.name.clone(), body_part: inj.body_part.clone(), games_missed: inj.games_total, career_ending: false };
+        let rec = InjuryRecord {
+            season: inj.season,
+            name: inj.name.clone(),
+            body_part: inj.body_part.clone(),
+            games_missed: inj.games_total,
+            career_ending: false,
+        };
         // apply permanent damage
         let perms = inj.permanent.clone();
         let ramp = inj.ramp_games;
@@ -367,12 +1021,25 @@ pub fn performance_penalty(p: &Player) -> f64 {
 /// Convert an injury to a short, human report ("Torn ACL — out ~75 games (est.)").
 pub fn describe(i: &Injury, hide_details: bool) -> String {
     if hide_details {
-        return format!("{} ({})", i.name, if i.games_remaining > 20 { "out for an extended period" } else { "questionable" });
+        return format!(
+            "{} ({})",
+            i.name,
+            if i.games_remaining > 20 {
+                "out for an extended period"
+            } else {
+                "questionable"
+            }
+        );
     }
     if i.career_ending {
         return format!("{} — career in jeopardy", i.name);
     }
-    format!("{} — {} games remaining ({})", i.name, i.games_remaining, i.severity.name())
+    format!(
+        "{} — {} games remaining ({})",
+        i.name,
+        i.games_remaining,
+        i.severity.name()
+    )
 }
 
 #[cfg(test)]
@@ -385,7 +1052,9 @@ mod tests {
         let mut ids = std::collections::HashSet::new();
         for d in &c {
             assert!(ids.insert(d.id.clone()));
-            assert!(d.weight > 0.0 && d.median_games >= 1.0 && d.max_games as f64 >= d.median_games);
+            assert!(
+                d.weight > 0.0 && d.median_games >= 1.0 && d.max_games as f64 >= d.median_games
+            );
             for (k, _) in &d.permanent {
                 assert!(Attr::from_key(k).is_some(), "bad attr {k} in {}", d.id);
             }

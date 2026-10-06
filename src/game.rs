@@ -31,33 +31,165 @@ pub struct TuneDef {
 }
 
 fn t(key: &str, desc: &str, default: f64, min: f64, max: f64) -> TuneDef {
-    TuneDef { key: key.into(), description: desc.into(), default, min, max }
+    TuneDef {
+        key: key.into(),
+        description: desc.into(),
+        default,
+        min,
+        max,
+    }
 }
 
 /// Every named engine parameter with its plain-English meaning.
 pub fn default_tuning() -> Vec<TuneDef> {
     vec![
-        t("game.pace_scale", "Multiplies game tempo. Used to calibrate possessions per game.", 1.0, 0.5, 1.5),
-        t("game.skill_slope", "How much player skill moves shooting percentages (1 = normal).", 1.0, 0.3, 2.0),
-        t("game.defense_slope", "How much defense matters for shot results.", 1.0, 0.2, 2.0),
-        t("game.usage_exponent", "How concentrated shots are on the best scorers. Higher = more star-driven.", 3.0, 1.0, 6.0),
-        t("game.three_rate_scale", "Scales how much shooters' skill changes their three-point volume.", 1.0, 0.0, 2.0),
-        t("game.fatigue_rate", "How fast energy drains while playing.", 1.0, 0.0, 3.0),
-        t("game.fatigue_penalty", "How much tiredness hurts skills.", 1.0, 0.0, 3.0),
-        t("game.turnover_scale", "Multiplier on turnover frequency.", 1.0, 0.3, 2.0),
-        t("game.foul_scale", "Multiplier on foul frequency (also set by 'Foul frequency' setting).", 1.0, 0.3, 2.0),
-        t("game.block_rate", "Share of missed rim shots that are blocked before skill adjustments.", 0.085, 0.0, 0.3),
-        t("game.steal_share", "Share of turnovers that are steals.", 0.5, 0.0, 1.0),
-        t("game.assist_scale", "Multiplier on how often baskets are assisted.", 1.0, 0.3, 1.8),
-        t("game.hot_hand_size", "Maximum shooting boost/penalty from hot/cold streaks.", 0.03, 0.0, 0.1),
-        t("game.night_variance", "Team 'shooting night' randomness, in shooting percentage points.", 0.022, 0.0, 0.08),
-        t("game.clutch_slope", "How much the Clutch rating matters late in close games.", 1.0, 0.0, 3.0),
-        t("game.three_point_bonus", "Flat bonus (or penalty) to every three-point attempt's chance of going in.", 0.0, -0.1, 0.1),
-        t("game.tech_rate", "Technical fouls per possession.", 0.0009, 0.0, 0.01),
-        t("game.flagrant_rate", "Flagrant fouls per possession.", 0.0004, 0.0, 0.01),
-        t("game.sub_hysteresis", "Minutes of imbalance before the coach substitutes. Lower = more substitutions.", 1.6, 0.3, 6.0),
-        t("game.zone_rim_penalty", "How much a zone defense hurts rim finishing against it.", 0.02, 0.0, 0.1),
-        t("game.shot_clock_violation_rate", "Share of turnovers that are shot-clock violations (when a clock exists).", 0.05, 0.0, 0.3),
+        t(
+            "game.pace_scale",
+            "Multiplies game tempo. Used to calibrate possessions per game.",
+            1.0,
+            0.5,
+            1.5,
+        ),
+        t(
+            "game.skill_slope",
+            "How much player skill moves shooting percentages (1 = normal).",
+            1.0,
+            0.3,
+            2.0,
+        ),
+        t(
+            "game.defense_slope",
+            "How much defense matters for shot results.",
+            1.0,
+            0.2,
+            2.0,
+        ),
+        t(
+            "game.usage_exponent",
+            "How concentrated shots are on the best scorers. Higher = more star-driven.",
+            3.0,
+            1.0,
+            6.0,
+        ),
+        t(
+            "game.three_rate_scale",
+            "Scales how much shooters' skill changes their three-point volume.",
+            1.0,
+            0.0,
+            2.0,
+        ),
+        t(
+            "game.fatigue_rate",
+            "How fast energy drains while playing.",
+            1.0,
+            0.0,
+            3.0,
+        ),
+        t(
+            "game.fatigue_penalty",
+            "How much tiredness hurts skills.",
+            1.0,
+            0.0,
+            3.0,
+        ),
+        t(
+            "game.turnover_scale",
+            "Multiplier on turnover frequency.",
+            1.0,
+            0.3,
+            2.0,
+        ),
+        t(
+            "game.foul_scale",
+            "Multiplier on foul frequency (also set by 'Foul frequency' setting).",
+            1.0,
+            0.3,
+            2.0,
+        ),
+        t(
+            "game.block_rate",
+            "Share of missed rim shots that are blocked before skill adjustments.",
+            0.085,
+            0.0,
+            0.3,
+        ),
+        t(
+            "game.steal_share",
+            "Share of turnovers that are steals.",
+            0.5,
+            0.0,
+            1.0,
+        ),
+        t(
+            "game.assist_scale",
+            "Multiplier on how often baskets are assisted.",
+            1.0,
+            0.3,
+            1.8,
+        ),
+        t(
+            "game.hot_hand_size",
+            "Maximum shooting boost/penalty from hot/cold streaks.",
+            0.03,
+            0.0,
+            0.1,
+        ),
+        t(
+            "game.night_variance",
+            "Team 'shooting night' randomness, in shooting percentage points.",
+            0.022,
+            0.0,
+            0.08,
+        ),
+        t(
+            "game.clutch_slope",
+            "How much the Clutch rating matters late in close games.",
+            1.0,
+            0.0,
+            3.0,
+        ),
+        t(
+            "game.three_point_bonus",
+            "Flat bonus (or penalty) to every three-point attempt's chance of going in.",
+            0.0,
+            -0.1,
+            0.1,
+        ),
+        t(
+            "game.tech_rate",
+            "Technical fouls per possession.",
+            0.0009,
+            0.0,
+            0.01,
+        ),
+        t(
+            "game.flagrant_rate",
+            "Flagrant fouls per possession.",
+            0.0004,
+            0.0,
+            0.01,
+        ),
+        t(
+            "game.sub_hysteresis",
+            "Minutes of imbalance before the coach substitutes. Lower = more substitutions.",
+            1.6,
+            0.3,
+            6.0,
+        ),
+        t(
+            "game.zone_rim_penalty",
+            "How much a zone defense hurts rim finishing against it.",
+            0.02,
+            0.0,
+            0.1,
+        ),
+        t(
+            "game.shot_clock_violation_rate",
+            "Share of turnovers that are shot-clock violations (when a clock exists).",
+            0.05,
+            0.0,
+            0.3,
+        ),
     ]
 }
 
@@ -90,7 +222,13 @@ pub struct Tune {
 impl Tune {
     pub fn from_map(map: &BTreeMap<String, f64>) -> Tune {
         let g = |k: &str| -> f64 {
-            map.get(k).copied().unwrap_or_else(|| default_tuning().iter().find(|d| d.key == k).map(|d| d.default).unwrap_or(1.0))
+            map.get(k).copied().unwrap_or_else(|| {
+                default_tuning()
+                    .iter()
+                    .find(|d| d.key == k)
+                    .map(|d| d.default)
+                    .unwrap_or(1.0)
+            })
         };
         Tune {
             pace_scale: g("game.pace_scale"),
@@ -151,7 +289,15 @@ pub struct Strategy {
 
 impl Default for Strategy {
     fn default() -> Self {
-        Strategy { tempo: 0.0, three_emphasis: 0.0, inside_focus: 0.5, defense: DefScheme::Man, crash_glass: 0.3, hack_a: false, tactics: 50.0 }
+        Strategy {
+            tempo: 0.0,
+            three_emphasis: 0.0,
+            inside_focus: 0.5,
+            defense: DefScheme::Man,
+            crash_glass: 0.3,
+            hack_a: false,
+            tactics: 50.0,
+        }
     }
 }
 
@@ -252,25 +398,54 @@ pub struct GamePlayer {
 }
 
 impl GamePlayer {
-    pub fn from_player(p: &Player, badges: &[BadgeDef], perf_mod: f64, injury_per_100: f64) -> GamePlayer {
+    pub fn from_player(
+        p: &Player,
+        badges: &[BadgeDef],
+        perf_mod: f64,
+        injury_per_100: f64,
+    ) -> GamePlayer {
         let a = &p.attrs;
         let g = |x: Attr| a.get(x);
         let h = p.height_in as f64;
         let hadj = h - 78.0;
         let pm = perf_mod * crate::injury::performance_penalty(p);
         let s = |v: f64| (v * pm).clamp(1.0, 110.0);
-        let fin = s(0.40 * g(Attr::Layup) + 0.20 * g(Attr::DrivingDunk).max(g(Attr::StandingDunk)) + 0.25 * g(Attr::CloseShot) + 0.15 * g(Attr::Vertical));
+        let fin = s(0.40 * g(Attr::Layup)
+            + 0.20 * g(Attr::DrivingDunk).max(g(Attr::StandingDunk))
+            + 0.25 * g(Attr::CloseShot)
+            + 0.15 * g(Attr::Vertical));
         let mid = s(0.75 * g(Attr::MidRange) + 0.25 * g(Attr::ShotIq));
         let three = s(0.80 * g(Attr::ThreePoint) + 0.20 * g(Attr::ShotIq));
-        let post = s(0.5 * g(Attr::PostControl) + 0.3 * g(Attr::CloseShot) + 0.2 * g(Attr::Strength));
+        let post =
+            s(0.5 * g(Attr::PostControl) + 0.3 * g(Attr::CloseShot) + 0.2 * g(Attr::Strength));
         let ft = s(0.9 * g(Attr::FreeThrow) + 0.1 * g(Attr::OffConsistency));
-        let handle = s(0.5 * g(Attr::BallHandle) + 0.2 * g(Attr::Hands) + 0.15 * g(Attr::SpeedWithBall) + 0.15 * g(Attr::PassIq));
-        let pass = s(0.35 * g(Attr::PassAccuracy) + 0.35 * g(Attr::PassVision) + 0.3 * g(Attr::PassIq));
-        let orb = s(0.55 * g(Attr::OffRebound) + 0.2 * g(Attr::Hustle) + 0.15 * g(Attr::Strength) + 0.1 * g(Attr::Vertical) + hadj * 0.8);
-        let drb = s(0.6 * g(Attr::DefRebound) + 0.15 * g(Attr::Hustle) + 0.15 * g(Attr::Strength) + 0.1 * g(Attr::Vertical) + hadj * 0.8);
-        let perim = s(0.45 * g(Attr::PerimeterDef) + 0.25 * g(Attr::LateralQuickness) + 0.15 * g(Attr::Speed) + 0.15 * g(Attr::DefConsistency));
-        let rim = s(0.5 * g(Attr::InteriorDef) + 0.25 * g(Attr::Block) + 0.15 * g(Attr::HelpDefIq) + 0.1 * g(Attr::Strength) + hadj * 0.8);
-        let steal = s(0.6 * g(Attr::Steal) + 0.25 * g(Attr::PassPerception) + 0.15 * g(Attr::Hands));
+        let handle = s(0.5 * g(Attr::BallHandle)
+            + 0.2 * g(Attr::Hands)
+            + 0.15 * g(Attr::SpeedWithBall)
+            + 0.15 * g(Attr::PassIq));
+        let pass =
+            s(0.35 * g(Attr::PassAccuracy) + 0.35 * g(Attr::PassVision) + 0.3 * g(Attr::PassIq));
+        let orb = s(0.55 * g(Attr::OffRebound)
+            + 0.2 * g(Attr::Hustle)
+            + 0.15 * g(Attr::Strength)
+            + 0.1 * g(Attr::Vertical)
+            + hadj * 0.8);
+        let drb = s(0.6 * g(Attr::DefRebound)
+            + 0.15 * g(Attr::Hustle)
+            + 0.15 * g(Attr::Strength)
+            + 0.1 * g(Attr::Vertical)
+            + hadj * 0.8);
+        let perim = s(0.45 * g(Attr::PerimeterDef)
+            + 0.25 * g(Attr::LateralQuickness)
+            + 0.15 * g(Attr::Speed)
+            + 0.15 * g(Attr::DefConsistency));
+        let rim = s(0.5 * g(Attr::InteriorDef)
+            + 0.25 * g(Attr::Block)
+            + 0.15 * g(Attr::HelpDefIq)
+            + 0.1 * g(Attr::Strength)
+            + hadj * 0.8);
+        let steal =
+            s(0.6 * g(Attr::Steal) + 0.25 * g(Attr::PassPerception) + 0.15 * g(Attr::Hands));
         let block = s(0.75 * g(Attr::Block) + 0.25 * g(Attr::Vertical) + hadj * 0.8);
         // Scoring talent: best skills count most.
         let mut sk = [fin.max(post), mid, three, handle * 0.9];
@@ -330,7 +505,7 @@ pub struct GameTeam {
 
 /// League-average composite skills (minutes-weighted). Ratings are applied *relative* to these,
 /// so a league of average players shoots exactly the era's league-average percentages.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Refs {
     pub fin: f64,
     pub mid: f64,
@@ -347,14 +522,38 @@ pub struct Refs {
 
 impl Default for Refs {
     fn default() -> Self {
-        Refs { fin: 60.0, mid: 58.0, three: 55.0, post: 56.0, ft: 58.0, handle: 55.0, pass: 55.0, orb: 55.0, drb: 55.0, perim: 55.0, rim: 55.0 }
+        Refs {
+            fin: 60.0,
+            mid: 58.0,
+            three: 55.0,
+            post: 56.0,
+            ft: 58.0,
+            handle: 55.0,
+            pass: 55.0,
+            orb: 55.0,
+            drb: 55.0,
+            perim: 55.0,
+            rim: 55.0,
+        }
     }
 }
 
 impl Refs {
     /// Minutes-weighted average over a set of players.
     pub fn from_players<'a>(players: impl Iterator<Item = &'a GamePlayer>) -> Refs {
-        let mut r = Refs { fin: 0.0, mid: 0.0, three: 0.0, post: 0.0, ft: 0.0, handle: 0.0, pass: 0.0, orb: 0.0, drb: 0.0, perim: 0.0, rim: 0.0 };
+        let mut r = Refs {
+            fin: 0.0,
+            mid: 0.0,
+            three: 0.0,
+            post: 0.0,
+            ft: 0.0,
+            handle: 0.0,
+            pass: 0.0,
+            orb: 0.0,
+            drb: 0.0,
+            perim: 0.0,
+            rim: 0.0,
+        };
         let mut w = 0.0;
         for p in players {
             let m = p.target_min.max(0.0);
@@ -374,13 +573,25 @@ impl Refs {
         if w <= 0.0 {
             return Refs::default();
         }
-        Refs { fin: r.fin / w, mid: r.mid / w, three: r.three / w, post: r.post / w, ft: r.ft / w, handle: r.handle / w, pass: r.pass / w, orb: r.orb / w, drb: r.drb / w, perim: r.perim / w, rim: r.rim / w }
+        Refs {
+            fin: r.fin / w,
+            mid: r.mid / w,
+            three: r.three / w,
+            post: r.post / w,
+            ft: r.ft / w,
+            handle: r.handle / w,
+            pass: r.pass / w,
+            orb: r.orb / w,
+            drb: r.drb / w,
+            perim: r.perim / w,
+            rim: r.rim / w,
+        }
     }
 }
 
 /// Calibration offsets found by [`calibrate`] so that a league of these players reproduces the
 /// era's league-average pace, shooting, fouls and turnovers.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Cal {
     pub two_off: f64,
     pub three_off: f64,
@@ -394,7 +605,16 @@ pub struct Cal {
 
 impl Default for Cal {
     fn default() -> Self {
-        Cal { two_off: 0.0, three_off: 0.0, ft_off: 0.0, pace_mul: 1.0, foul_mul: 1.0, tov_mul: 1.0, orb_mul: 1.0, three_mul: 1.0 }
+        Cal {
+            two_off: 0.0,
+            three_off: 0.0,
+            ft_off: 0.0,
+            pace_mul: 1.0,
+            foul_mul: 1.0,
+            tov_mul: 1.0,
+            orb_mul: 1.0,
+            three_mul: 1.0,
+        }
     }
 }
 
@@ -607,19 +827,50 @@ impl SimTeam {
 }
 
 fn mid_share_of_twos(year: i32) -> f64 {
-    interp(&[(1946, 0.80), (1960, 0.75), (1980, 0.62), (1995, 0.52), (2005, 0.46), (2012, 0.40), (2016, 0.30), (2020, 0.24), (2030, 0.21)], year as f64)
+    interp(
+        &[
+            (1946, 0.80),
+            (1960, 0.75),
+            (1980, 0.62),
+            (1995, 0.52),
+            (2005, 0.46),
+            (2012, 0.40),
+            (2016, 0.30),
+            (2020, 0.24),
+            (2030, 0.21),
+        ],
+        year as f64,
+    )
 }
 
 fn post_share_of_rim(year: i32) -> f64 {
-    interp(&[(1946, 0.42), (1990, 0.33), (2010, 0.16), (2024, 0.07)], year as f64)
+    interp(
+        &[(1946, 0.42), (1990, 0.33), (2010, 0.16), (2024, 0.07)],
+        year as f64,
+    )
 }
 
 fn assist_rate(year: i32) -> f64 {
-    interp(&[(1946, 0.36), (1960, 0.44), (1975, 0.55), (1990, 0.58), (2010, 0.57), (2024, 0.62)], year as f64)
+    interp(
+        &[
+            (1946, 0.36),
+            (1960, 0.44),
+            (1975, 0.55),
+            (1990, 0.58),
+            (2010, 0.57),
+            (2024, 0.62),
+        ],
+        year as f64,
+    )
 }
 
 /// Play one full game.
-pub fn simulate_game(ctx: &GameContext, home: &GameTeam, away: &GameTeam, rng: &mut Rng) -> BoxScore {
+pub fn simulate_game(
+    ctx: &GameContext,
+    home: &GameTeam,
+    away: &GameTeam,
+    rng: &mut Rng,
+) -> BoxScore {
     let tm = [SimTeam::new(home, rng, ctx), SimTeam::new(away, rng, ctx)];
     let r = &ctx.rules;
     let total_len = 4.0 * r.quarter_minutes * 60.0;
@@ -629,7 +880,11 @@ pub fn simulate_game(ctx: &GameContext, home: &GameTeam, away: &GameTeam, rng: &
     let seconds_per_poss = total_len / (2.0 * poss_per_team);
     let mid_share = mid_share_of_twos(ctx.season);
     // Expected shooting fouls per field-goal attempt (shot-mix weighted multipliers are normalised in `shot_foul_mult`).
-    let shoot_foul_per_fga = ctx.style.ft_rate / 2.15 * ctx.cal.foul_mul * ctx.tune.foul_scale * ctx.foul_rate * r.foul_multiplier;
+    let shoot_foul_per_fga = ctx.style.ft_rate / 2.15
+        * ctx.cal.foul_mul
+        * ctx.tune.foul_scale
+        * ctx.foul_rate
+        * r.foul_multiplier;
     let mut sim = Sim {
         ctx,
         rng,
@@ -662,10 +917,17 @@ impl<'a> Sim<'a> {
 
     fn log(&mut self, s: String) {
         if self.ctx.play_by_play {
-            let q = if self.period <= 4 { format!("Q{}", self.period) } else { format!("OT{}", self.period - 4) };
+            let q = if self.period <= 4 {
+                format!("Q{}", self.period)
+            } else {
+                format!("OT{}", self.period - 4)
+            };
             let m = (self.clock / 60.0).floor() as i32;
             let sec = (self.clock as i32) % 60;
-            self.pbp.push(format!("{q} {m}:{sec:02} [{}-{}] {s}", self.tm[0].pts, self.tm[1].pts));
+            self.pbp.push(format!(
+                "{q} {m}:{sec:02} [{}-{}] {s}",
+                self.tm[0].pts, self.tm[1].pts
+            ));
         }
     }
 
@@ -679,7 +941,11 @@ impl<'a> Sim<'a> {
         period_start_off[3] = tip_winner;
         let ot_len = self.ctx.rules.overtime_minutes * 60.0;
         loop {
-            let ps = if self.period <= 4 { period_start_off[self.period as usize - 1] } else { (tip_winner + self.period as usize) % 2 };
+            let ps = if self.period <= 4 {
+                period_start_off[self.period as usize - 1]
+            } else {
+                (tip_winner + self.period as usize) % 2
+            };
             self.off = ps;
             self.play_period();
             self.periods.push((self.tm[0].q_pts, self.tm[1].q_pts));
@@ -756,7 +1022,9 @@ impl<'a> Sim<'a> {
                 let must = t.pl[idx].out || t.pl[idx].fouls >= foul_limit;
                 let tired = t.pl[idx].energy < 28.0;
                 if must || tired {
-                    if let Some(r) = Self::best_replacement(t, slot, elapsed, period, true, clutch, garbage, team_lead) {
+                    if let Some(r) = Self::best_replacement(
+                        t, slot, elapsed, period, true, clutch, garbage, team_lead,
+                    ) {
                         Self::swap(t, slot, r, elapsed);
                     }
                 }
@@ -773,15 +1041,20 @@ impl<'a> Sim<'a> {
                 let mut worst = -hyst;
                 for slot in 0..5 {
                     let idx = t.on[slot];
-                    let d = Self::deficit(&t.pl[idx], elapsed, period, clutch, garbage, team_lead, false);
+                    let d = Self::deficit(
+                        &t.pl[idx], elapsed, period, clutch, garbage, team_lead, false,
+                    );
                     if d < worst {
                         worst = d;
                         worst_slot = Some(slot);
                     }
                 }
                 let Some(slot) = worst_slot else { break };
-                if let Some(r) = Self::best_replacement(t, slot, elapsed, period, false, clutch, garbage, team_lead) {
-                    let d_r = Self::deficit(&t.pl[r], elapsed, period, clutch, garbage, team_lead, false);
+                if let Some(r) = Self::best_replacement(
+                    t, slot, elapsed, period, false, clutch, garbage, team_lead,
+                ) {
+                    let d_r =
+                        Self::deficit(&t.pl[r], elapsed, period, clutch, garbage, team_lead, false);
                     if d_r > -hyst * 0.2 {
                         Self::swap(t, slot, r, elapsed);
                         continue;
@@ -791,13 +1064,25 @@ impl<'a> Sim<'a> {
             }
             // Closing lineup: in clutch time, make sure the best available players are on the floor.
             if clutch {
-                let mut order: Vec<usize> = (0..t.pl.len()).filter(|&i| !t.pl[i].out && t.pl[i].fouls < foul_limit && t.pl[i].energy > 35.0).collect();
+                let mut order: Vec<usize> = (0..t.pl.len())
+                    .filter(|&i| {
+                        !t.pl[i].out && t.pl[i].fouls < foul_limit && t.pl[i].energy > 35.0
+                    })
+                    .collect();
                 order.sort_by(|&a, &b| t.pl[b].p.ovr.partial_cmp(&t.pl[a].p.ovr).unwrap());
                 for &best in order.iter().take(5) {
                     if !t.pl[best].on {
                         // swap out the weakest on-court player not in the top 5
                         let top5: Vec<usize> = order.iter().take(5).copied().collect();
-                        if let Some(slot) = (0..5).filter(|s| !top5.contains(&t.on[*s])).min_by(|a, b| t.pl[t.on[*a]].p.ovr.partial_cmp(&t.pl[t.on[*b]].p.ovr).unwrap()) {
+                        if let Some(slot) =
+                            (0..5).filter(|s| !top5.contains(&t.on[*s])).min_by(|a, b| {
+                                t.pl[t.on[*a]]
+                                    .p
+                                    .ovr
+                                    .partial_cmp(&t.pl[t.on[*b]].p.ovr)
+                                    .unwrap()
+                            })
+                        {
                             Self::swap(t, slot, best, elapsed);
                         }
                     }
@@ -807,13 +1092,29 @@ impl<'a> Sim<'a> {
     }
 
     /// Positive = this player is owed court time, negative = he has played more than planned (seconds).
-    fn deficit(p: &SimPlayer, elapsed: f64, period: usize, clutch: bool, garbage: bool, lead: i32, _force: bool) -> f64 {
+    fn deficit(
+        p: &SimPlayer,
+        elapsed: f64,
+        period: usize,
+        clutch: bool,
+        garbage: bool,
+        lead: i32,
+        _force: bool,
+    ) -> f64 {
         let mut frac = p.p.target_min / 48.0;
         if clutch {
             frac = (frac * 1.35).min(0.97);
         }
         if garbage {
-            frac = if lead > 0 || lead < 0 { if p.p.target_min >= 22.0 { frac * 0.1 } else { (frac * 2.2).min(0.95) } } else { frac };
+            frac = if lead > 0 || lead < 0 {
+                if p.p.target_min >= 22.0 {
+                    frac * 0.1
+                } else {
+                    (frac * 2.2).min(0.95)
+                }
+            } else {
+                frac
+            };
         }
         // foul trouble: fouls above (period+1) are a sit-down signal
         let trouble = (p.fouls as i32 - (period as i32 + 1)).max(0) as f64 * 150.0;
@@ -823,12 +1124,26 @@ impl<'a> Sim<'a> {
         frac * elapsed - p.secs - trouble - tired
     }
 
-    fn best_replacement(t: &SimTeam, slot: usize, elapsed: f64, period: usize, mandatory: bool, clutch: bool, garbage: bool, lead: i32) -> Option<usize> {
+    fn best_replacement(
+        t: &SimTeam,
+        slot: usize,
+        elapsed: f64,
+        period: usize,
+        mandatory: bool,
+        clutch: bool,
+        garbage: bool,
+        lead: i32,
+    ) -> Option<usize> {
         let leaving = t.on[slot];
         let lpos = t.pl[leaving].p.pos;
         let mut best: Option<(f64, usize)> = None;
         for (i, p) in t.pl.iter().enumerate() {
-            if p.on || p.out || p.fouls >= 6 || p.energy < 30.0 || p.p.target_min <= 0.0 && !mandatory {
+            if p.on
+                || p.out
+                || p.fouls >= 6
+                || p.energy < 30.0
+                || p.p.target_min <= 0.0 && !mandatory
+            {
                 continue;
             }
             let d = Self::deficit(p, elapsed, period, clutch, garbage, lead, false);
@@ -840,11 +1155,19 @@ impl<'a> Sim<'a> {
                 score += 0.4;
             }
             // keep a ball handler and a big on the floor
-            let handlers_after = (0..5).filter(|s| *s != slot).filter(|s| t.pl[t.on[*s]].p.handle >= 52.0).count() + (p.p.handle >= 52.0) as usize;
+            let handlers_after = (0..5)
+                .filter(|s| *s != slot)
+                .filter(|s| t.pl[t.on[*s]].p.handle >= 52.0)
+                .count()
+                + (p.p.handle >= 52.0) as usize;
             if handlers_after == 0 {
                 score -= 4.0;
             }
-            let bigs_after = (0..5).filter(|s| *s != slot).filter(|s| t.pl[t.on[*s]].p.height >= 80.0).count() + (p.p.height >= 80.0) as usize;
+            let bigs_after = (0..5)
+                .filter(|s| *s != slot)
+                .filter(|s| t.pl[t.on[*s]].p.height >= 80.0)
+                .count()
+                + (p.p.height >= 80.0) as usize;
             if bigs_after == 0 && t.pl.iter().any(|x| x.p.height >= 80.0 && !x.out) {
                 score -= 2.0;
             }
@@ -881,7 +1204,12 @@ impl<'a> Sim<'a> {
             for p in self.tm[ti].pl.iter_mut() {
                 if p.on {
                     p.secs += secs;
-                    p.energy = (p.energy - drain_base * (1.30 - p.p.stamina / 100.0 + p.p.fx.stamina * -1.0) * mins * m).max(0.0);
+                    p.energy = (p.energy
+                        - drain_base
+                            * (1.30 - p.p.stamina / 100.0 + p.p.fx.stamina * -1.0)
+                            * mins
+                            * m)
+                        .max(0.0);
                 } else {
                     p.energy = (p.energy + 0.75 * mins * (0.8 + p.p.stamina / 250.0)).min(100.0);
                 }
@@ -892,12 +1220,15 @@ impl<'a> Sim<'a> {
             for ti in 0..2 {
                 for slot in 0..5 {
                     let idx = self.tm[ti].on[slot];
-                    let chance = self.tm[ti].pl[idx].p.injury_per_100 * mins / 100.0 * (1.0 + (100.0 - self.tm[ti].pl[idx].energy) / 150.0);
+                    let chance = self.tm[ti].pl[idx].p.injury_per_100 * mins / 100.0
+                        * (1.0 + (100.0 - self.tm[ti].pl[idx].energy) / 150.0);
                     if chance > 0.0 && self.rng.f64() < chance {
                         let name = self.tm[ti].pl[idx].p.name.clone();
                         self.tm[ti].pl[idx].injured = true;
                         self.tm[ti].pl[idx].out = true;
-                        self.log(format!("{name} is down and leaves the game with an injury."));
+                        self.log(format!(
+                            "{name} is down and leaves the game with an injury."
+                        ));
                     }
                 }
             }
@@ -952,7 +1283,11 @@ impl<'a> Sim<'a> {
         if r.shot_clock == 0 && self.period >= 3 && lead >= 3 {
             mean *= 1.0 + (lead as f64 * 0.03).min(0.35);
         }
-        let max_dur = if r.shot_clock > 0 { r.shot_clock as f64 } else { 90.0 };
+        let max_dur = if r.shot_clock > 0 {
+            r.shot_clock as f64
+        } else {
+            90.0
+        };
         let dur = self.rng.gauss(mean, mean * 0.33).clamp(3.0, max_dur);
         let dur = dur.min(self.clock.max(0.5));
         let was_transition = self.transition;
@@ -983,14 +1318,26 @@ impl<'a> Sim<'a> {
         let r = &self.ctx.rules;
         let behind = self.lead(def);
         // Late game: trailing team fouls to stop the clock.
-        let late = self.period >= 4 && self.clock <= if r.intentional_foul_rule { 120.0 } else { 90.0 } && behind < 0 && behind >= -9 && self.clock > 3.0;
+        let late = self.period >= 4
+            && self.clock <= if r.intentional_foul_rule { 120.0 } else { 90.0 }
+            && behind < 0
+            && behind >= -9
+            && self.clock > 3.0;
         let _ = off;
         if late && self.rng.chance(if self.clock < 60.0 { 0.9 } else { 0.5 }) {
             return true;
         }
         // Hack-a-player strategy (not allowed to be as aggressive under the 2016 rule except via a decision to foul on the ball).
-        if self.tm[def].strat.hack_a && self.period >= 2 && self.clock > 120.0 && !r.intentional_foul_rule {
-            let worst = self.tm[off].on.iter().map(|&i| self.tm[off].pl[i].p.ft).fold(100.0, f64::min);
+        if self.tm[def].strat.hack_a
+            && self.period >= 2
+            && self.clock > 120.0
+            && !r.intentional_foul_rule
+        {
+            let worst = self.tm[off]
+                .on
+                .iter()
+                .map(|&i| self.tm[off].pl[i].p.ft)
+                .fold(100.0, f64::min);
             return worst < 45.0 && self.rng.chance(0.55);
         }
         false
@@ -998,12 +1345,26 @@ impl<'a> Sim<'a> {
 
     fn intentional_foul(&mut self, def: usize, off: usize) {
         // Foul the on-court offensive player who is worst at free throws.
-        let victim = *self.tm[off].on.iter().min_by(|&&a, &&b| self.tm[off].pl[a].p.ft.partial_cmp(&self.tm[off].pl[b].p.ft).unwrap()).unwrap();
+        let victim = *self.tm[off]
+            .on
+            .iter()
+            .min_by(|&&a, &&b| {
+                self.tm[off].pl[a]
+                    .p
+                    .ft
+                    .partial_cmp(&self.tm[off].pl[b].p.ft)
+                    .unwrap()
+            })
+            .unwrap();
         let fouler = self.pick_defender_for_foul(def);
         self.commit_foul(def, fouler);
-        let (fname, vname) = (self.tm[def].pl[fouler].p.name.clone(), self.tm[off].pl[victim].p.name.clone());
+        let (fname, vname) = (
+            self.tm[def].pl[fouler].p.name.clone(),
+            self.tm[off].pl[victim].p.name.clone(),
+        );
         self.log(format!("{fname} intentionally fouls {vname}."));
-        let in_bonus = self.tm[def].fouls_q >= self.ctx.rules.bonus_fouls as u16 || self.clock <= 120.0;
+        let in_bonus =
+            self.tm[def].fouls_q >= self.ctx.rules.bonus_fouls as u16 || self.clock <= 120.0;
         // After this call the main loop flips `self.off`. Leaving it as `off` hands the ball to `def`;
         // setting it to `def` lets the offense keep the ball.
         if in_bonus {
@@ -1020,12 +1381,13 @@ impl<'a> Sim<'a> {
         }
     }
 
-
     fn pick_defender_for_foul(&mut self, def: usize) -> usize {
-        let w: Vec<f64> = (0..5).map(|s| {
-            let p = &self.tm[def].pl[self.tm[def].on[s]];
-            (110.0 - p.p.discipline).max(5.0)
-        }).collect();
+        let w: Vec<f64> = (0..5)
+            .map(|s| {
+                let p = &self.tm[def].pl[self.tm[def].on[s]];
+                (110.0 - p.p.discipline).max(5.0)
+            })
+            .collect();
         self.tm[def].on[self.rng.weighted(&w)]
     }
 
@@ -1045,12 +1407,24 @@ impl<'a> Sim<'a> {
     }
 
     fn technical(&mut self, team: usize) {
-        let w: Vec<f64> = (0..5).map(|s| 100.0 - self.tm[team].pl[self.tm[team].on[s]].p.discipline + 10.0).collect();
+        let w: Vec<f64> = (0..5)
+            .map(|s| 100.0 - self.tm[team].pl[self.tm[team].on[s]].p.discipline + 10.0)
+            .collect();
         let i = self.tm[team].on[self.rng.weighted(&w)];
         self.tm[team].pl[i].techs += 1;
         self.tm[team].pl[i].stats.pf += 0;
         let shooter_team = 1 - team;
-        let shooter = *self.tm[shooter_team].on.iter().max_by(|&&a, &&b| self.tm[shooter_team].pl[a].p.ft.partial_cmp(&self.tm[shooter_team].pl[b].p.ft).unwrap()).unwrap();
+        let shooter = *self.tm[shooter_team]
+            .on
+            .iter()
+            .max_by(|&&a, &&b| {
+                self.tm[shooter_team].pl[a]
+                    .p
+                    .ft
+                    .partial_cmp(&self.tm[shooter_team].pl[b].p.ft)
+                    .unwrap()
+            })
+            .unwrap();
         let name = self.tm[team].pl[i].p.name.clone();
         self.log(format!("Technical foul on {name}."));
         let _ = self.free_throws(shooter_team, shooter, 1, team, 1.0);
@@ -1078,16 +1452,30 @@ impl<'a> Sim<'a> {
             }
             fresh = false;
             // Non-shooting foul before the shot (reach-ins, loose-ball, off-ball).
-            if !second_chance && self.rng.f64() < 0.075 * self.ctx.tune.foul_scale * self.ctx.foul_rate * if self.ctx.rules.hand_checking { 1.12 } else { 0.95 } {
+            if !second_chance
+                && self.rng.f64()
+                    < 0.075
+                        * self.ctx.tune.foul_scale
+                        * self.ctx.foul_rate
+                        * if self.ctx.rules.hand_checking {
+                            1.12
+                        } else {
+                            0.95
+                        }
+            {
                 let fouler = self.pick_defender_for_foul(def);
                 self.commit_foul(def, fouler);
                 let bonus = self.tm[def].fouls_q >= self.ctx.rules.bonus_fouls as u16;
                 if bonus {
                     let victim = self.pick_shooter(off, def, Shot::Rim);
                     let n = self.tm[def].pl[fouler].p.name.clone();
-                    self.log(format!("Foul on {n}; {} to the line.", self.tm[off].pl[victim].p.name));
+                    self.log(format!(
+                        "Foul on {n}; {} to the line.",
+                        self.tm[off].pl[victim].p.name
+                    ));
                     if let FtEnd::MissedLive = self.free_throws(off, victim, 2, def, 1.0) {
-                        if let ShotEnd::OffensiveRebound = self.rebound(off, def, false, 0.75, None) {
+                        if let ShotEnd::OffensiveRebound = self.rebound(off, def, false, 0.75, None)
+                        {
                             second_chance = true;
                             transition = false;
                             continue;
@@ -1118,15 +1506,31 @@ impl<'a> Sim<'a> {
         let ctx = self.ctx;
         let base = ctx.style.tov * ctx.tune.turnover_scale * ctx.cal.tov_mul;
         // team handling vs team pressure
-        let handle_avg: f64 = self.tm[off].on.iter().map(|&i| self.tm[off].pl[i].p.handle).sum::<f64>() / 5.0;
-        let pressure: f64 = self.tm[def].on.iter().map(|&i| self.tm[def].pl[i].p.steal * 0.6 + self.tm[def].pl[i].p.perim * 0.4).sum::<f64>() / 5.0;
+        let handle_avg: f64 = self.tm[off]
+            .on
+            .iter()
+            .map(|&i| self.tm[off].pl[i].p.handle)
+            .sum::<f64>()
+            / 5.0;
+        let pressure: f64 = self.tm[def]
+            .on
+            .iter()
+            .map(|&i| self.tm[def].pl[i].p.steal * 0.6 + self.tm[def].pl[i].p.perim * 0.4)
+            .sum::<f64>()
+            / 5.0;
         let press_mult = match self.tm[def].strat.defense {
             DefScheme::Press => 1.22,
             DefScheme::Zone => 0.96,
             DefScheme::Man => 1.0,
         };
-        let unp: f64 = self.tm[off].on.iter().map(|&i| self.tm[off].pl[i].p.fx.tov_reduce).sum();
-        let mut p = base * (1.0 + 0.011 * (self.ctx.refs.handle - handle_avg) + 0.010 * (pressure - 55.0)) * press_mult;
+        let unp: f64 = self.tm[off]
+            .on
+            .iter()
+            .map(|&i| self.tm[off].pl[i].p.fx.tov_reduce)
+            .sum();
+        let mut p = base
+            * (1.0 + 0.011 * (self.ctx.refs.handle - handle_avg) + 0.010 * (pressure - 55.0))
+            * press_mult;
         p *= 1.0 - unp.min(0.5);
         if transition {
             p *= 0.8;
@@ -1135,18 +1539,28 @@ impl<'a> Sim<'a> {
             return false;
         }
         // who turned it over?
-        let w: Vec<f64> = (0..5).map(|s| {
-            let pl = &self.tm[off].pl[self.tm[off].on[s]];
-            pl.p.usage * (130.0 - pl.p.handle).max(15.0)
-        }).collect();
+        let w: Vec<f64> = (0..5)
+            .map(|s| {
+                let pl = &self.tm[off].pl[self.tm[off].on[s]];
+                pl.p.usage * (130.0 - pl.p.handle).max(15.0)
+            })
+            .collect();
         let who = self.tm[off].on[self.rng.weighted(&w)];
         self.tm[off].pl[who].stats.tov += 1;
         let is_steal = self.rng.chance(ctx.tune.steal_share);
         if is_steal {
-            let w: Vec<f64> = (0..5).map(|s| expo(0.04 * (self.tm[def].pl[self.tm[def].on[s]].p.steal - 50.0)) * (1.0 + self.tm[def].pl[self.tm[def].on[s]].p.fx.steal * 4.0)).collect();
+            let w: Vec<f64> = (0..5)
+                .map(|s| {
+                    expo(0.04 * (self.tm[def].pl[self.tm[def].on[s]].p.steal - 50.0))
+                        * (1.0 + self.tm[def].pl[self.tm[def].on[s]].p.fx.steal * 4.0)
+                })
+                .collect();
             let st = self.tm[def].on[self.rng.weighted(&w)];
             self.tm[def].pl[st].stats.stl += 1;
-            let (n1, n2) = (self.tm[off].pl[who].p.name.clone(), self.tm[def].pl[st].p.name.clone());
+            let (n1, n2) = (
+                self.tm[off].pl[who].p.name.clone(),
+                self.tm[def].pl[st].p.name.clone(),
+            );
             self.log(format!("{n2} steals it from {n1}."));
             self.transition = self.rng.chance(0.55);
         } else {
@@ -1178,7 +1592,9 @@ impl<'a> Sim<'a> {
                 let e = 0.75 + 0.25 * (p.energy / 100.0);
                 let mut u = (p.p.usage.powf(exp / 3.0) * (skill / 60.0).powf(exp * 0.55)) * e;
                 if clutch {
-                    u *= 1.0 + (p.p.clutch - 55.0) / 120.0 * self.ctx.tune.clutch_slope + (p.p.ovr - 60.0) / 150.0;
+                    u *= 1.0
+                        + (p.p.clutch - 55.0) / 120.0 * self.ctx.tune.clutch_slope
+                        + (p.p.ovr - 60.0) / 150.0;
                 }
                 u * (1.0 + p.heat * 1.2)
             })
@@ -1186,7 +1602,13 @@ impl<'a> Sim<'a> {
         self.tm[off].on[self.rng.weighted(&w)]
     }
 
-    fn pick_shot_type(&mut self, off: usize, shooter_hint: Option<usize>, transition: bool, second_chance: bool) -> (usize, Shot) {
+    fn pick_shot_type(
+        &mut self,
+        off: usize,
+        shooter_hint: Option<usize>,
+        transition: bool,
+        second_chance: bool,
+    ) -> (usize, Shot) {
         let r = &self.ctx.rules;
         let style = &self.ctx.style;
         // First choose a shooter by overall usage, then his shot type by skills.
@@ -1200,8 +1622,16 @@ impl<'a> Sim<'a> {
         if r.three_point && !second_chance {
             let rate = style.three_rate;
             let skill = 0.03 * (p.three - self.ctx.refs.three) * self.ctx.tune.three_rate_scale;
-            let size_pen = if p.height >= 82.0 { -0.35 } else if p.height >= 80.0 { -0.12 } else { 0.0 };
-            three_p = rate * self.ctx.cal.three_mul * expo(skill + size_pen + 0.35 * strat.three_emphasis);
+            let size_pen = if p.height >= 82.0 {
+                -0.35
+            } else if p.height >= 80.0 {
+                -0.12
+            } else {
+                0.0
+            };
+            three_p = rate
+                * self.ctx.cal.three_mul
+                * expo(skill + size_pen + 0.35 * strat.three_emphasis);
             // Positional tilt: guards and wings take more, bigs fewer.
             three_p = three_p.clamp(0.0, 0.85);
             if transition {
@@ -1218,13 +1648,19 @@ impl<'a> Sim<'a> {
         // Two-point shot: mid vs rim vs post.
         let ms = self.mid_share * if second_chance { 0.2 } else { 1.0 };
         let mid_pref = expo(0.028 * (p.mid - self.ctx.refs.mid)) * ms;
-        let rim_pref = expo(0.028 * (p.fin.max(p.post * 0.9) - self.ctx.refs.fin)) * (1.0 - ms) * if transition { 2.0 } else { 1.0 } * (1.0 + 0.5 * (strat.inside_focus - 0.5));
+        let rim_pref = expo(0.028 * (p.fin.max(p.post * 0.9) - self.ctx.refs.fin))
+            * (1.0 - ms)
+            * if transition { 2.0 } else { 1.0 }
+            * (1.0 + 0.5 * (strat.inside_focus - 0.5));
         let mid_prob = mid_pref / (mid_pref + rim_pref);
         if self.rng.f64() < mid_prob {
             return (shooter, Shot::Mid);
         }
         // Post-up or at the rim
-        let post_pref = expo(0.03 * (p.post - p.fin)) * self.post_share * (1.0 + 0.8 * (strat.inside_focus - 0.5)) * if p.height >= 79.0 { 1.5 } else { 0.4 };
+        let post_pref = expo(0.03 * (p.post - p.fin))
+            * self.post_share
+            * (1.0 + 0.8 * (strat.inside_focus - 0.5))
+            * if p.height >= 79.0 { 1.5 } else { 0.4 };
         let post_prob = (post_pref / (post_pref + (1.0 - self.post_share))).clamp(0.0, 0.85);
         if !transition && self.rng.f64() < post_prob {
             (shooter, Shot::Post)
@@ -1246,25 +1682,76 @@ impl<'a> Sim<'a> {
         let rf = ctx.refs;
 
         // Copy everything we need about the shooter so we can mutate the sim freely below.
-        let (m_fin, m_mid, m_three, m_post, m_handle, m_scoring, m_draw, m_clutch, m_energy, m_heat, fx) = {
+        let (
+            m_fin,
+            m_mid,
+            m_three,
+            m_post,
+            m_handle,
+            m_scoring,
+            m_draw,
+            m_clutch,
+            m_energy,
+            m_heat,
+            fx,
+        ) = {
             let me = &self.tm[off].pl[shooter];
-            (me.p.fin, me.p.mid, me.p.three, me.p.post, me.p.handle, me.p.scoring, me.p.draw_foul, me.p.clutch, me.energy, me.heat, me.p.fx)
+            (
+                me.p.fin,
+                me.p.mid,
+                me.p.three,
+                me.p.post,
+                me.p.handle,
+                me.p.scoring,
+                me.p.draw_foul,
+                me.p.clutch,
+                me.energy,
+                me.heat,
+                me.p.fx,
+            )
         };
         let fat = self.fatigue_pen(m_energy);
 
         // Defense: perimeter and rim composites.
         let (perim_d, rim_d, rim_fx, perim_fx, zone, best_block, blk_fx, def_disc) = {
             let dteam = &self.tm[def];
-            let perim_d: f64 = dteam.on.iter().map(|&i| dteam.pl[i].p.perim - self.fatigue_pen(dteam.pl[i].energy) * 0.5).sum::<f64>() / 5.0;
-            let mut v: Vec<f64> = dteam.on.iter().map(|&i| dteam.pl[i].p.rim - self.fatigue_pen(dteam.pl[i].energy) * 0.5).collect();
+            let perim_d: f64 = dteam
+                .on
+                .iter()
+                .map(|&i| dteam.pl[i].p.perim - self.fatigue_pen(dteam.pl[i].energy) * 0.5)
+                .sum::<f64>()
+                / 5.0;
+            let mut v: Vec<f64> = dteam
+                .on
+                .iter()
+                .map(|&i| dteam.pl[i].p.rim - self.fatigue_pen(dteam.pl[i].energy) * 0.5)
+                .collect();
             v.sort_by(|a, b| b.partial_cmp(a).unwrap());
             let rim_d = 0.55 * v[0] + 0.25 * v[1] + 0.2 * v[2..].iter().sum::<f64>() / 3.0;
             let rim_fx: f64 = dteam.on.iter().map(|&i| dteam.pl[i].p.fx.rim_d).sum();
             let perim_fx: f64 = dteam.on.iter().map(|&i| dteam.pl[i].p.fx.perim_d).sum();
-            let best_block = dteam.on.iter().map(|&i| dteam.pl[i].p.block).fold(0.0, f64::max);
+            let best_block = dteam
+                .on
+                .iter()
+                .map(|&i| dteam.pl[i].p.block)
+                .fold(0.0, f64::max);
             let blk_fx: f64 = dteam.on.iter().map(|&i| dteam.pl[i].p.fx.block).sum();
-            let def_disc: f64 = dteam.on.iter().map(|&i| dteam.pl[i].p.discipline).sum::<f64>() / 5.0;
-            (perim_d, rim_d, rim_fx, perim_fx, dteam.strat.defense == DefScheme::Zone, best_block, blk_fx, def_disc)
+            let def_disc: f64 = dteam
+                .on
+                .iter()
+                .map(|&i| dteam.pl[i].p.discipline)
+                .sum::<f64>()
+                / 5.0;
+            (
+                perim_d,
+                rim_d,
+                rim_fx,
+                perim_fx,
+                dteam.strat.defense == DefScheme::Zone,
+                best_block,
+                blk_fx,
+                def_disc,
+            )
         };
 
         // Assisted?
@@ -1274,21 +1761,34 @@ impl<'a> Sim<'a> {
             Shot::Mid => 1.0,
             Shot::Three => 1.25,
         };
-        let self_create = ((m_handle - rf.handle) * 0.004 + (m_scoring - 62.0) * 0.003).clamp(-0.1, 0.25);
-        let mut p_ast = (self.ast_rate * type_mult * (1.0 - self_create) * if transition { 0.9 } else { 1.0 }).clamp(0.0, 0.95);
+        let self_create =
+            ((m_handle - rf.handle) * 0.004 + (m_scoring - 62.0) * 0.003).clamp(-0.1, 0.25);
+        let mut p_ast =
+            (self.ast_rate * type_mult * (1.0 - self_create) * if transition { 0.9 } else { 1.0 })
+                .clamp(0.0, 0.95);
         if second_chance {
             p_ast = 0.05;
         }
-        let team_pass: f64 = self.tm[off].on.iter().map(|&i| self.tm[off].pl[i].p.pass).sum::<f64>() / 5.0;
+        let team_pass: f64 = self.tm[off]
+            .on
+            .iter()
+            .map(|&i| self.tm[off].pl[i].p.pass)
+            .sum::<f64>()
+            / 5.0;
         p_ast = (p_ast * (1.0 + 0.008 * (team_pass - rf.pass))).clamp(0.0, 0.97);
         let assisted = self.rng.f64() < p_ast;
         let assister = if assisted {
-            let cand: Vec<usize> = (0..5).map(|s| self.tm[off].on[s]).filter(|&i| i != shooter).collect();
+            let cand: Vec<usize> = (0..5)
+                .map(|s| self.tm[off].on[s])
+                .filter(|&i| i != shooter)
+                .collect();
             let w: Vec<f64> = cand
                 .iter()
                 .map(|&i| {
                     let p = &self.tm[off].pl[i];
-                    expo(0.05 * (p.p.pass - 50.0)) * (1.0 + p.p.fx.assist_boost * 6.0) * (0.6 + p.p.handle / 120.0)
+                    expo(0.05 * (p.p.pass - 50.0))
+                        * (1.0 + p.p.fx.assist_boost * 6.0)
+                        * (0.6 + p.p.handle / 120.0)
                 })
                 .collect();
             Some(cand[self.rng.weighted(&w)])
@@ -1299,10 +1799,30 @@ impl<'a> Sim<'a> {
 
         // Make probability
         let mut p = match kind {
-            Shot::Rim => rim_base + ctx.cal.two_off + 0.0026 * slope * (m_fin - rf.fin) - 0.0021 * dslope * (rim_d - rf.rim) - rim_fx * 0.04,
-            Shot::Post => rim_base + ctx.cal.two_off - 0.035 + 0.0027 * slope * (m_post - rf.post) - 0.0020 * dslope * (rim_d - rf.rim) + fx.post - rim_fx * 0.04,
-            Shot::Mid => mid_base + ctx.cal.two_off + 0.0030 * slope * (m_mid - rf.mid) - 0.0018 * dslope * (perim_d - rf.perim) + fx.mid - perim_fx * 0.04,
-            Shot::Three => fg3 + ctx.cal.three_off + 0.0030 * slope * (m_three - rf.three) - 0.0016 * dslope * (perim_d - rf.perim) + fx.three + ctx.tune.three_bonus - perim_fx * 0.04,
+            Shot::Rim => {
+                rim_base + ctx.cal.two_off + 0.0026 * slope * (m_fin - rf.fin)
+                    - 0.0021 * dslope * (rim_d - rf.rim)
+                    - rim_fx * 0.04
+            }
+            Shot::Post => {
+                rim_base + ctx.cal.two_off - 0.035 + 0.0027 * slope * (m_post - rf.post)
+                    - 0.0020 * dslope * (rim_d - rf.rim)
+                    + fx.post
+                    - rim_fx * 0.04
+            }
+            Shot::Mid => {
+                mid_base + ctx.cal.two_off + 0.0030 * slope * (m_mid - rf.mid)
+                    - 0.0018 * dslope * (perim_d - rf.perim)
+                    + fx.mid
+                    - perim_fx * 0.04
+            }
+            Shot::Three => {
+                fg3 + ctx.cal.three_off + 0.0030 * slope * (m_three - rf.three)
+                    - 0.0016 * dslope * (perim_d - rf.perim)
+                    + fx.three
+                    + ctx.tune.three_bonus
+                    - perim_fx * 0.04
+            }
         };
         if matches!(kind, Shot::Rim | Shot::Post) {
             p += fx.rim * if kind == Shot::Rim { 1.0 } else { 0.4 };
@@ -1327,7 +1847,12 @@ impl<'a> Sim<'a> {
                     p += fx.assisted_three;
                 }
             } else {
-                p += b_u * if matches!(kind, Shot::Mid | Shot::Three) { (1.0 - fx.contest_resist * 4.0).max(0.0) } else { 1.0 } - expected;
+                p +=
+                    b_u * if matches!(kind, Shot::Mid | Shot::Three) {
+                        (1.0 - fx.contest_resist * 4.0).max(0.0)
+                    } else {
+                        1.0
+                    } - expected;
             }
         }
         if transition {
@@ -1348,12 +1873,23 @@ impl<'a> Sim<'a> {
             p += 0.0011 * (m_clutch - 55.0) * ctx.tune.clutch_slope + fx.clutch;
         }
         // team-level boosts: floor general etc.
-        p += self.tm[off].on.iter().map(|&i| self.tm[off].pl[i].p.fx.team_boost).sum::<f64>() * 0.5;
+        p += self.tm[off]
+            .on
+            .iter()
+            .map(|&i| self.tm[off].pl[i].p.fx.team_boost)
+            .sum::<f64>()
+            * 0.5;
         // Coaching tactics (small): 50 is neutral.
         p += (self.tm[off].strat.tactics - 50.0) * 0.00012;
         // Home court & shooting night
         let hc = ctx.home_court * 0.0014;
-        let side = if ctx.neutral_site { 0.0 } else if off == 0 { hc } else { -hc };
+        let side = if ctx.neutral_site {
+            0.0
+        } else if off == 0 {
+            hc
+        } else {
+            -hc
+        };
         p += side + self.tm[off].night;
         let p = p.clamp(0.06, 0.93);
 
@@ -1365,9 +1901,17 @@ impl<'a> Sim<'a> {
             Shot::Three => 0.14,
         };
         if matches!(kind, Shot::Mid | Shot::Three) {
-            foul_mult *= if ctx.rules.hand_checking { 1.12 } else if ctx.rules.freedom_of_movement { 0.95 } else { 1.0 };
+            foul_mult *= if ctx.rules.hand_checking {
+                1.12
+            } else if ctx.rules.freedom_of_movement {
+                0.95
+            } else {
+                1.0
+            };
         }
-        let mut p_foul = self.shoot_foul_per_fga * foul_mult * (1.0 + 0.011 * (m_draw - 55.0) + fx.draw_foul) / (1.0 + 0.008 * (def_disc - 55.0));
+        let mut p_foul =
+            self.shoot_foul_per_fga * foul_mult * (1.0 + 0.011 * (m_draw - 55.0) + fx.draw_foul)
+                / (1.0 + 0.008 * (def_disc - 55.0));
         if second_chance {
             p_foul *= 1.1;
         }
@@ -1377,7 +1921,11 @@ impl<'a> Sim<'a> {
 
         let shooter_name = self.tm[off].pl[shooter].p.name.clone();
         let is_three = kind == Shot::Three;
-        let pts_val: u16 = if is_three { ctx.rules.three_value as u16 } else { 2 };
+        let pts_val: u16 = if is_three {
+            ctx.rules.three_value as u16
+        } else {
+            2
+        };
 
         // Hot/cold tracking
         {
@@ -1391,7 +1939,10 @@ impl<'a> Sim<'a> {
             let fouler_name = self.tm[def].pl[fouler].p.name.clone();
             if made {
                 self.record_fg(off, shooter, assister, kind, pts_val, transition);
-                self.log(format!("{shooter_name} {} and is fouled by {fouler_name}! And-one.", shot_desc(kind)));
+                self.log(format!(
+                    "{shooter_name} {} and is fouled by {fouler_name}! And-one.",
+                    shot_desc(kind)
+                ));
                 let _ = self.free_throws(off, shooter, 1, def, 1.0);
                 return ShotEnd::Over;
             } else {
@@ -1415,7 +1966,9 @@ impl<'a> Sim<'a> {
 
         if made {
             self.record_fg_made(off, shooter, assister, kind, pts_val, transition);
-            let assist_txt = assister.map(|a| format!(" (assist: {})", self.tm[off].pl[a].p.name)).unwrap_or_default();
+            let assist_txt = assister
+                .map(|a| format!(" (assist: {})", self.tm[off].pl[a].p.name))
+                .unwrap_or_default();
             self.log(format!("{shooter_name} {}{}", shot_desc(kind), assist_txt));
             return ShotEnd::Over;
         }
@@ -1428,10 +1981,13 @@ impl<'a> Sim<'a> {
                 Shot::Mid => 0.35,
                 Shot::Three => 0.08,
             };
-        let p_blk = (blk_base * expo(0.035 * (best_block - 50.0)) * (1.0 + 0.5 * blk_fx)).clamp(0.0, 0.45);
+        let p_blk =
+            (blk_base * expo(0.035 * (best_block - 50.0)) * (1.0 + 0.5 * blk_fx)).clamp(0.0, 0.45);
         let blocked = self.rng.f64() < p_blk;
         if blocked {
-            let w: Vec<f64> = (0..5).map(|s| expo(0.06 * (self.tm[def].pl[self.tm[def].on[s]].p.block - 50.0))).collect();
+            let w: Vec<f64> = (0..5)
+                .map(|s| expo(0.06 * (self.tm[def].pl[self.tm[def].on[s]].p.block - 50.0)))
+                .collect();
             let b = self.tm[def].on[self.rng.weighted(&w)];
             self.tm[def].pl[b].stats.blk += 1;
             let bn = self.tm[def].pl[b].p.name.clone();
@@ -1442,7 +1998,15 @@ impl<'a> Sim<'a> {
         self.rebound(off, def, blocked, 1.0, None)
     }
 
-    fn record_fg(&mut self, off: usize, shooter: usize, assister: Option<usize>, kind: Shot, pts: u16, transition: bool) {
+    fn record_fg(
+        &mut self,
+        off: usize,
+        shooter: usize,
+        assister: Option<usize>,
+        kind: Shot,
+        pts: u16,
+        transition: bool,
+    ) {
         // FGA + FGM for an and-one
         {
             let pl = &mut self.tm[off].pl[shooter];
@@ -1454,7 +2018,15 @@ impl<'a> Sim<'a> {
         self.record_fg_made(off, shooter, assister, kind, pts, transition);
     }
 
-    fn record_fg_made(&mut self, off: usize, shooter: usize, assister: Option<usize>, kind: Shot, pts: u16, transition: bool) {
+    fn record_fg_made(
+        &mut self,
+        off: usize,
+        shooter: usize,
+        assister: Option<usize>,
+        kind: Shot,
+        pts: u16,
+        transition: bool,
+    ) {
         {
             let pl = &mut self.tm[off].pl[shooter];
             pl.stats.fgm += 1;
@@ -1476,13 +2048,23 @@ impl<'a> Sim<'a> {
     }
 
     /// Shoot `n` free throws. Returns how the trip ended.
-    fn free_throws(&mut self, off: usize, shooter: usize, n: u8, _def: usize, _scale: f64) -> FtEnd {
+    fn free_throws(
+        &mut self,
+        off: usize,
+        shooter: usize,
+        n: u8,
+        _def: usize,
+        _scale: f64,
+    ) -> FtEnd {
         let ft_base = self.ctx.style.ft_pct;
         let mut last_made = true;
         for k in 0..n {
             let sk = self.tm[off].pl[shooter].p.ft;
             let fat = self.fatigue_pen(self.tm[off].pl[shooter].energy) * 0.2;
-            let mut p = ft_base + self.ctx.cal.ft_off + 0.0042 * self.ctx.tune.skill_slope * (sk - self.ctx.refs.ft) - fat * 0.01;
+            let mut p = ft_base
+                + self.ctx.cal.ft_off
+                + 0.0042 * self.ctx.tune.skill_slope * (sk - self.ctx.refs.ft)
+                - fat * 0.01;
             p += self.tm[off].pl[shooter].p.fx.ft;
             if self.clutch_time() {
                 p += 0.0006 * (self.tm[off].pl[shooter].p.clutch - 55.0);
@@ -1512,7 +2094,14 @@ impl<'a> Sim<'a> {
     }
 
     /// Resolve a rebound after a miss. Returns whether the offense retained the ball.
-    fn rebound(&mut self, off: usize, def: usize, blocked: bool, orb_scale: f64, _hint: Option<usize>) -> ShotEnd {
+    fn rebound(
+        &mut self,
+        off: usize,
+        def: usize,
+        blocked: bool,
+        orb_scale: f64,
+        _hint: Option<usize>,
+    ) -> ShotEnd {
         let ctx = self.ctx;
         // Team rebound / out of bounds
         if self.rng.chance(0.045) {
@@ -1525,14 +2114,24 @@ impl<'a> Sim<'a> {
             }
         }
         let k = (1.0 - ctx.style.orb) / ctx.style.orb;
-        let ro: f64 = self.tm[off].on.iter().map(|&i| {
-            let p = &self.tm[off].pl[i];
-            expo(0.045 * (p.p.orb - self.fatigue_pen(p.energy) * 0.3 - 50.0)) * (1.0 + p.p.fx.oreb * 5.0)
-        }).sum();
-        let rd: f64 = self.tm[def].on.iter().map(|&i| {
-            let p = &self.tm[def].pl[i];
-            expo(0.045 * (p.p.drb - self.fatigue_pen(p.energy) * 0.3 - 50.0)) * (1.0 + p.p.fx.dreb * 5.0)
-        }).sum();
+        let ro: f64 = self.tm[off]
+            .on
+            .iter()
+            .map(|&i| {
+                let p = &self.tm[off].pl[i];
+                expo(0.045 * (p.p.orb - self.fatigue_pen(p.energy) * 0.3 - 50.0))
+                    * (1.0 + p.p.fx.oreb * 5.0)
+            })
+            .sum();
+        let rd: f64 = self.tm[def]
+            .on
+            .iter()
+            .map(|&i| {
+                let p = &self.tm[def].pl[i];
+                expo(0.045 * (p.p.drb - self.fatigue_pen(p.energy) * 0.3 - 50.0))
+                    * (1.0 + p.p.fx.dreb * 5.0)
+            })
+            .sum();
         // strategy: crash the glass raises offensive boards; sending players back lowers transition defense
         let crash = 1.0 + 0.25 * (self.tm[off].strat.crash_glass - 0.3);
         let mut p_orb = ro * crash / (ro * crash + k * rd) * orb_scale * ctx.cal.orb_mul;
@@ -1541,14 +2140,18 @@ impl<'a> Sim<'a> {
         }
         if self.rng.f64() < p_orb.clamp(0.02, 0.8) {
             // offensive rebound
-            let w: Vec<f64> = (0..5).map(|s| expo(0.05 * (self.tm[off].pl[self.tm[off].on[s]].p.orb - 50.0))).collect();
+            let w: Vec<f64> = (0..5)
+                .map(|s| expo(0.05 * (self.tm[off].pl[self.tm[off].on[s]].p.orb - 50.0)))
+                .collect();
             let r = self.tm[off].on[self.rng.weighted(&w)];
             self.tm[off].pl[r].stats.orb += 1;
             let n = self.tm[off].pl[r].p.name.clone();
             self.log(format!("{n} grabs the offensive rebound."));
             ShotEnd::OffensiveRebound
         } else {
-            let w: Vec<f64> = (0..5).map(|s| expo(0.05 * (self.tm[def].pl[self.tm[def].on[s]].p.drb - 50.0))).collect();
+            let w: Vec<f64> = (0..5)
+                .map(|s| expo(0.05 * (self.tm[def].pl[self.tm[def].on[s]].p.drb - 50.0)))
+                .collect();
             let r = self.tm[def].on[self.rng.weighted(&w)];
             self.tm[def].pl[r].stats.drb += 1;
             // fast break chance after long rebound
@@ -1560,7 +2163,14 @@ impl<'a> Sim<'a> {
     }
 
     fn finish(&mut self) -> BoxScore {
-        let mut out = BoxScore { season: self.ctx.season, playoffs: self.ctx.playoffs, periods: self.periods.clone(), overtimes: self.period.saturating_sub(4), pbp: std::mem::take(&mut self.pbp), ..Default::default() };
+        let mut out = BoxScore {
+            season: self.ctx.season,
+            playoffs: self.ctx.playoffs,
+            periods: self.periods.clone(),
+            overtimes: self.period.saturating_sub(4),
+            pbp: std::mem::take(&mut self.pbp),
+            ..Default::default()
+        };
         for (ti, tb) in [(0usize, &mut out.home), (1usize, &mut out.away)] {
             let t = &self.tm[ti];
             tb.team = t.id;
@@ -1577,7 +2187,15 @@ impl<'a> Sim<'a> {
                 s.g = if p.secs > 0.0 || p.started { 1 } else { 0 };
                 s.gs = if p.started { 1 } else { 0 };
                 s.plus_minus = p.pm;
-                tb.players.push(PlayerBox { id: p.p.id, name: p.p.name.clone(), stats: s, started: p.started, injured_in_game: p.injured, fouled_out: p.fouled_out, ejected: p.ejected });
+                tb.players.push(PlayerBox {
+                    id: p.p.id,
+                    name: p.p.name.clone(),
+                    stats: s,
+                    started: p.started,
+                    injured_in_game: p.injured,
+                    fouled_out: p.fouled_out,
+                    ejected: p.ejected,
+                });
             }
         }
         out
@@ -1611,7 +2229,6 @@ fn shot_word(k: Shot) -> &'static str {
         Shot::Three => "three",
     }
 }
-
 
 // -------------------------------------------------------------------------------------------
 // Self-calibration
@@ -1666,13 +2283,21 @@ impl LeagueMeasure {
         (self.fgm - self.tpm) / (self.fga - self.tpa).max(1.0)
     }
     pub fn fg3(&self) -> f64 {
-        if self.tpa > 0.0 { self.tpm / self.tpa } else { 0.0 }
+        if self.tpa > 0.0 {
+            self.tpm / self.tpa
+        } else {
+            0.0
+        }
     }
     pub fn ft_rate(&self) -> f64 {
         self.fta / self.fga.max(1.0)
     }
     pub fn ft_pct(&self) -> f64 {
-        if self.fta > 0.0 { self.ftm / self.fta } else { 0.0 }
+        if self.fta > 0.0 {
+            self.ftm / self.fta
+        } else {
+            0.0
+        }
     }
     pub fn tov_rate(&self) -> f64 {
         self.tov / self.poss.max(1.0)
@@ -1688,7 +2313,13 @@ impl LeagueMeasure {
 
 /// Play `games` sample games between random pairs of `teams` and adjust `ctx.cal` so the league
 /// averages match the era style. Repeats for `rounds` rounds (2-3 is plenty).
-pub fn calibrate(ctx: &mut GameContext, teams: &[GameTeam], rng: &mut Rng, games: usize, rounds: usize) -> LeagueMeasure {
+pub fn calibrate(
+    ctx: &mut GameContext,
+    teams: &[GameTeam],
+    rng: &mut Rng,
+    games: usize,
+    rounds: usize,
+) -> LeagueMeasure {
     let mut last = LeagueMeasure::default();
     if teams.len() < 2 {
         return last;
@@ -1716,7 +2347,8 @@ pub fn calibrate(ctx: &mut GameContext, teams: &[GameTeam], rng: &mut Rng, games
         c.tov_mul = (c.tov_mul * (st.tov / m.tov_rate().max(0.01))).clamp(0.4, 2.5);
         c.orb_mul = (c.orb_mul * (st.orb / m.orb_rate().max(0.05))).clamp(0.4, 2.5);
         if st.three_rate > 0.0 && m.tpa > 0.0 {
-            c.three_mul = (c.three_mul * (st.three_rate / m.three_rate().max(0.005))).clamp(0.3, 3.0);
+            c.three_mul =
+                (c.three_mul * (st.three_rate / m.three_rate().max(0.005))).clamp(0.3, 3.0);
         }
         last = m;
     }
@@ -1740,14 +2372,23 @@ pub fn assign_rotation(players: &mut [GamePlayer], playoffs: bool, rules: &Rules
     // Starters: best 5, but make sure there's a ball handler and (before the positionless era) a big.
     let mut starters: Vec<usize> = order.iter().copied().take(5).collect();
     if !starters.iter().any(|&i| players[i].handle >= 52.0) {
-        if let Some(&h) = order.iter().find(|&&i| !starters.contains(&i) && players[i].handle >= 52.0) {
+        if let Some(&h) = order
+            .iter()
+            .find(|&&i| !starters.contains(&i) && players[i].handle >= 52.0)
+        {
             starters.pop();
             starters.push(h);
         }
     }
     if rules.year < 2018 && !starters.iter().any(|&i| players[i].height >= 80.0) {
-        if let Some(&h) = order.iter().find(|&&i| !starters.contains(&i) && players[i].height >= 80.0) {
-            let weakest = *starters.iter().min_by(|&&a, &&b| players[a].ovr.partial_cmp(&players[b].ovr).unwrap()).unwrap();
+        if let Some(&h) = order
+            .iter()
+            .find(|&&i| !starters.contains(&i) && players[i].height >= 80.0)
+        {
+            let weakest = *starters
+                .iter()
+                .min_by(|&&a, &&b| players[a].ovr.partial_cmp(&players[b].ovr).unwrap())
+                .unwrap();
             let pos = starters.iter().position(|&x| x == weakest).unwrap();
             starters[pos] = h;
         }
@@ -1759,9 +2400,13 @@ pub fn assign_rotation(players: &mut [GamePlayer], playoffs: bool, rules: &Rules
         players[i].starter = true;
     }
     let base: [f64; 13] = if playoffs {
-        [39.0, 37.0, 35.0, 33.0, 31.0, 22.0, 18.0, 13.0, 8.0, 4.0, 0.0, 0.0, 0.0]
+        [
+            39.0, 37.0, 35.0, 33.0, 31.0, 22.0, 18.0, 13.0, 8.0, 4.0, 0.0, 0.0, 0.0,
+        ]
     } else {
-        [35.0, 33.0, 31.0, 29.0, 27.0, 23.0, 20.0, 16.0, 12.0, 8.0, 4.0, 2.0, 1.0]
+        [
+            35.0, 33.0, 31.0, 29.0, 27.0, 23.0, 20.0, 16.0, 12.0, 8.0, 4.0, 2.0, 1.0,
+        ]
     };
     // Starters first (by ovr), then bench (by ovr).
     let mut ranked: Vec<usize> = starters.clone();
@@ -1786,7 +2431,11 @@ pub fn assign_rotation(players: &mut [GamePlayer], playoffs: bool, rules: &Rules
         auto.push((i, m));
     }
     let target_total = 5.0 * 4.0 * rules.quarter_minutes;
-    let scale = if auto_total > 0.0 { ((target_total - fixed_total) / auto_total).clamp(0.6, 1.6) } else { 1.0 };
+    let scale = if auto_total > 0.0 {
+        ((target_total - fixed_total) / auto_total).clamp(0.6, 1.6)
+    } else {
+        1.0
+    };
     for (i, m) in auto {
         players[i].target_min = (m * scale).min(44.0);
     }
@@ -1804,17 +2453,32 @@ mod tests {
     use crate::content::Content;
     use crate::generate::*;
 
-    fn make_team(content: &Content, rng: &mut Rng, season: Season, id: TeamId, boost: f64) -> GameTeam {
+    fn make_team(
+        content: &Content,
+        rng: &mut Rng,
+        season: Season,
+        id: TeamId,
+        boost: f64,
+    ) -> GameTeam {
         let mut players = vec![];
         for i in 0..11 {
-            let target = if i < 5 { 66.0 + boost } else { 54.0 + boost - i as f64 * 0.8 };
+            let target = if i < 5 {
+                66.0 + boost
+            } else {
+                54.0 + boost - i as f64 * 0.8
+            };
             let spec = GenSpec::new(season, 26, target, target, OriginKind::College);
             let p = generate_player(content, rng, id as u32 * 100 + i, &spec, 1.0);
             players.push(GamePlayer::from_player(&p, &content.badges, 1.0, 0.0));
         }
         let rules = content.rules(season);
         assign_rotation_simple(&mut players, false, &rules);
-        GameTeam { id, name: format!("Team{id}"), players, strategy: Strategy::default() }
+        GameTeam {
+            id,
+            name: format!("Team{id}"),
+            players,
+            strategy: Strategy::default(),
+        }
     }
 
     fn assign_rotation_simple(players: &mut [GamePlayer], playoffs: bool, rules: &Rules) {
@@ -1854,10 +2518,18 @@ mod tests {
         let mut ctx = ctx_for(&content, season);
         ctx.play_by_play = true;
         let bs = simulate_game(&ctx, &a, &b, &mut rng);
-        assert!(bs.home.pts > 50 && bs.away.pts > 50, "{} - {}", bs.home.pts, bs.away.pts);
+        assert!(
+            bs.home.pts > 50 && bs.away.pts > 50,
+            "{} - {}",
+            bs.home.pts,
+            bs.away.pts
+        );
         assert_ne!(bs.home.pts, bs.away.pts);
         let sum: u32 = bs.home.players.iter().map(|p| p.stats.pts).sum();
-        assert_eq!(sum, bs.home.pts as u32, "player points must add up to team points");
+        assert_eq!(
+            sum, bs.home.pts as u32,
+            "player points must add up to team points"
+        );
         let mins: f64 = bs.home.players.iter().map(|p| p.stats.min).sum();
         assert!((mins - 240.0).abs() < 12.0, "minutes {mins}");
         assert!(!bs.pbp.is_empty());

@@ -24,7 +24,13 @@ pub enum Position {
 }
 
 impl Position {
-    pub const ALL: [Position; 5] = [Position::PG, Position::SG, Position::SF, Position::PF, Position::C];
+    pub const ALL: [Position; 5] = [
+        Position::PG,
+        Position::SG,
+        Position::SF,
+        Position::PF,
+        Position::C,
+    ];
     pub fn idx(self) -> usize {
         self as usize
     }
@@ -164,13 +170,17 @@ pub struct Attrs {
 
 impl Default for Attrs {
     fn default() -> Self {
-        Attrs { v: vec![50; ATTR_COUNT] }
+        Attrs {
+            v: vec![50; ATTR_COUNT],
+        }
     }
 }
 
 impl Attrs {
     pub fn new(fill: u8) -> Self {
-        Attrs { v: vec![fill; ATTR_COUNT] }
+        Attrs {
+            v: vec![fill; ATTR_COUNT],
+        }
     }
     #[inline]
     pub fn get(&self, a: Attr) -> f64 {
@@ -210,7 +220,12 @@ impl Attrs {
 /// rebounding, athleticism and mental traits.
 pub fn compute_overall(a: &Attrs, height_in: u8) -> f64 {
     let f = |fam| a.family_avg(fam);
-    let mut offs = [f(Family::Inside), f(Family::Mid), f(Family::Three), f(Family::Playmaking)];
+    let mut offs = [
+        f(Family::Inside),
+        f(Family::Mid),
+        f(Family::Three),
+        f(Family::Playmaking),
+    ];
     offs.sort_by(|x, y| y.partial_cmp(x).unwrap());
     let offense = 0.42 * offs[0] + 0.28 * offs[1] + 0.18 * offs[2] + 0.12 * offs[3];
     let (p, i) = (f(Family::PerimeterD), f(Family::InteriorD));
@@ -219,7 +234,11 @@ pub fn compute_overall(a: &Attrs, height_in: u8) -> f64 {
     let reb_w = if height_in >= 80 { 0.13 } else { 0.08 };
     let ath = f(Family::Athletic);
     let mental = f(Family::Mental);
-    let raw = (0.42 - (reb_w - 0.08)) * offense + 0.27 * defense + reb_w * f(Family::Rebounding) + 0.17 * ath + 0.06 * mental;
+    let raw = (0.42 - (reb_w - 0.08)) * offense
+        + 0.27 * defense
+        + reb_w * f(Family::Rebounding)
+        + 0.17 * ath
+        + 0.06 * mental;
     // Stretch the middle so stars separate from role players: raw 50 → 50, raw 75 → ~84.
     let ovr = 50.0 + (raw - 50.0) * 1.38;
     ovr.clamp(25.0, 99.0)
@@ -229,8 +248,14 @@ pub fn compute_overall(a: &Attrs, height_in: u8) -> f64 {
 pub fn infer_position(a: &Attrs, height_in: u8) -> Position {
     let f = |fam| a.family_avg(fam);
     let mut x = (height_in as f64 - 71.0) / 2.6;
-    x += (f(Family::InteriorD) + f(Family::Rebounding) - f(Family::Playmaking) - f(Family::PerimeterD)) / 60.0;
-    x += (a.get(Attr::StandingDunk) + a.get(Attr::PostControl) - a.get(Attr::BallHandle) - a.get(Attr::ThreePoint)) / 200.0;
+    x += (f(Family::InteriorD) + f(Family::Rebounding)
+        - f(Family::Playmaking)
+        - f(Family::PerimeterD))
+        / 60.0;
+    x += (a.get(Attr::StandingDunk) + a.get(Attr::PostControl)
+        - a.get(Attr::BallHandle)
+        - a.get(Attr::ThreePoint))
+        / 200.0;
     Position::from_idx(x.round().clamp(0.0, 4.0) as usize)
 }
 
@@ -264,7 +289,19 @@ pub struct Hidden {
 
 impl Default for Hidden {
     fn default() -> Self {
-        Hidden { work_ethic: 60, coachability: 60, ego: 50, loyalty: 50, greed: 50, winning: 50, injury_prone: 1.0, peak_age: 27.0, bloom: 0.0, bust: 0.0, charisma: 50 }
+        Hidden {
+            work_ethic: 60,
+            coachability: 60,
+            ego: 50,
+            loyalty: 50,
+            greed: 50,
+            winning: 50,
+            injury_prone: 1.0,
+            peak_age: 27.0,
+            bloom: 0.0,
+            bust: 0.0,
+            charisma: 50,
+        }
     }
 }
 
@@ -320,7 +357,14 @@ fn default_step() -> u8 {
     6
 }
 
-fn bd(id: &str, name: &str, cat: &str, desc: &str, req: &[(&str, u8)], eff: &[(&str, f64)]) -> BadgeDef {
+fn bd(
+    id: &str,
+    name: &str,
+    cat: &str,
+    desc: &str,
+    req: &[(&str, u8)],
+    eff: &[(&str, f64)],
+) -> BadgeDef {
     BadgeDef {
         id: id.into(),
         name: name.into(),
@@ -335,40 +379,243 @@ fn bd(id: &str, name: &str, cat: &str, desc: &str, req: &[(&str, u8)], eff: &[(&
 pub fn builtin_badges() -> Vec<BadgeDef> {
     vec![
         // Shooting
-        bd("deadeye", "Deadeye", "Shooting", "Contested jumpers hurt less.", &[("three_point", 72), ("shot_iq", 65)], &[("contest_resist", 0.12)]),
-        bd("catch_shoot", "Catch & Shoot", "Shooting", "Better on assisted jump shots.", &[("three_point", 70)], &[("assisted_three", 0.012)]),
-        bd("limitless_range", "Limitless Range", "Shooting", "Deep threes fall more often.", &[("three_point", 80)], &[("three", 0.010)]),
-        bd("mid_maestro", "Mid-Range Maestro", "Shooting", "A lethal mid-range game.", &[("mid_range", 76), ("shot_iq", 66)], &[("mid", 0.012)]),
-        bd("clutch_shooter", "Clutch Shooter", "Shooting", "Hits shots in crunch time.", &[("clutch", 78), ("off_consistency", 65)], &[("clutch", 0.015)]),
-        bd("free_throw_ace", "Free Throw Ace", "Shooting", "Rarely misses at the line.", &[("free_throw", 84)], &[("ft", 0.012)]),
+        bd(
+            "deadeye",
+            "Deadeye",
+            "Shooting",
+            "Contested jumpers hurt less.",
+            &[("three_point", 72), ("shot_iq", 65)],
+            &[("contest_resist", 0.12)],
+        ),
+        bd(
+            "catch_shoot",
+            "Catch & Shoot",
+            "Shooting",
+            "Better on assisted jump shots.",
+            &[("three_point", 70)],
+            &[("assisted_three", 0.012)],
+        ),
+        bd(
+            "limitless_range",
+            "Limitless Range",
+            "Shooting",
+            "Deep threes fall more often.",
+            &[("three_point", 80)],
+            &[("three", 0.010)],
+        ),
+        bd(
+            "mid_maestro",
+            "Mid-Range Maestro",
+            "Shooting",
+            "A lethal mid-range game.",
+            &[("mid_range", 76), ("shot_iq", 66)],
+            &[("mid", 0.012)],
+        ),
+        bd(
+            "clutch_shooter",
+            "Clutch Shooter",
+            "Shooting",
+            "Hits shots in crunch time.",
+            &[("clutch", 78), ("off_consistency", 65)],
+            &[("clutch", 0.015)],
+        ),
+        bd(
+            "free_throw_ace",
+            "Free Throw Ace",
+            "Shooting",
+            "Rarely misses at the line.",
+            &[("free_throw", 84)],
+            &[("ft", 0.012)],
+        ),
         // Finishing
-        bd("posterizer", "Posterizer", "Finishing", "Dunks over defenders.", &[("driving_dunk", 82), ("vertical", 78)], &[("rim", 0.012), ("draw_foul", 0.01)]),
-        bd("acrobat", "Acrobat", "Finishing", "Contorts around rim protectors.", &[("layup", 80), ("agility", 72)], &[("rim", 0.010)]),
-        bd("pro_touch", "Pro Touch", "Finishing", "Soft touch on layups and floaters.", &[("close_shot", 78), ("layup", 74)], &[("rim", 0.008), ("mid", 0.004)]),
-        bd("post_scorer", "Post Technician", "Finishing", "Crafty back-to-the-basket scoring.", &[("post_control", 78), ("close_shot", 70)], &[("post", 0.015)]),
-        bd("foul_magnet", "Foul Magnet", "Finishing", "Draws fouls constantly.", &[("draw_foul", 78)], &[("draw_foul", 0.025)]),
+        bd(
+            "posterizer",
+            "Posterizer",
+            "Finishing",
+            "Dunks over defenders.",
+            &[("driving_dunk", 82), ("vertical", 78)],
+            &[("rim", 0.012), ("draw_foul", 0.01)],
+        ),
+        bd(
+            "acrobat",
+            "Acrobat",
+            "Finishing",
+            "Contorts around rim protectors.",
+            &[("layup", 80), ("agility", 72)],
+            &[("rim", 0.010)],
+        ),
+        bd(
+            "pro_touch",
+            "Pro Touch",
+            "Finishing",
+            "Soft touch on layups and floaters.",
+            &[("close_shot", 78), ("layup", 74)],
+            &[("rim", 0.008), ("mid", 0.004)],
+        ),
+        bd(
+            "post_scorer",
+            "Post Technician",
+            "Finishing",
+            "Crafty back-to-the-basket scoring.",
+            &[("post_control", 78), ("close_shot", 70)],
+            &[("post", 0.015)],
+        ),
+        bd(
+            "foul_magnet",
+            "Foul Magnet",
+            "Finishing",
+            "Draws fouls constantly.",
+            &[("draw_foul", 78)],
+            &[("draw_foul", 0.025)],
+        ),
         // Playmaking
-        bd("dimer", "Dimer", "Playmaking", "Teammates shoot better off his passes.", &[("pass_accuracy", 78), ("pass_vision", 72)], &[("assist_boost", 0.012)]),
-        bd("floor_general", "Floor General", "Playmaking", "Raises the whole lineup.", &[("pass_iq", 80), ("pass_vision", 76), ("ball_handle", 70)], &[("team_boost", 0.006)]),
-        bd("handles_for_days", "Handles for Days", "Playmaking", "Rarely tires dribbling; rarely turns it over.", &[("ball_handle", 84), ("speed_with_ball", 78)], &[("tov_reduce", 0.012)]),
-        bd("ankle_breaker", "Ankle Breaker", "Playmaking", "Breaks defenders down off the bounce.", &[("ball_handle", 86), ("agility", 80)], &[("iso", 0.012)]),
-        bd("unpluckable", "Unpluckable", "Playmaking", "Hard to steal from.", &[("hands", 78), ("ball_handle", 70)], &[("tov_reduce", 0.010)]),
+        bd(
+            "dimer",
+            "Dimer",
+            "Playmaking",
+            "Teammates shoot better off his passes.",
+            &[("pass_accuracy", 78), ("pass_vision", 72)],
+            &[("assist_boost", 0.012)],
+        ),
+        bd(
+            "floor_general",
+            "Floor General",
+            "Playmaking",
+            "Raises the whole lineup.",
+            &[("pass_iq", 80), ("pass_vision", 76), ("ball_handle", 70)],
+            &[("team_boost", 0.006)],
+        ),
+        bd(
+            "handles_for_days",
+            "Handles for Days",
+            "Playmaking",
+            "Rarely tires dribbling; rarely turns it over.",
+            &[("ball_handle", 84), ("speed_with_ball", 78)],
+            &[("tov_reduce", 0.012)],
+        ),
+        bd(
+            "ankle_breaker",
+            "Ankle Breaker",
+            "Playmaking",
+            "Breaks defenders down off the bounce.",
+            &[("ball_handle", 86), ("agility", 80)],
+            &[("iso", 0.012)],
+        ),
+        bd(
+            "unpluckable",
+            "Unpluckable",
+            "Playmaking",
+            "Hard to steal from.",
+            &[("hands", 78), ("ball_handle", 70)],
+            &[("tov_reduce", 0.010)],
+        ),
         // Defense
-        bd("clamps", "Clamps", "Defense", "Sticks to ball handlers like glue.", &[("perimeter_def", 82), ("lateral_quickness", 78)], &[("perim_d", 0.020)]),
-        bd("rim_protector", "Rim Protector", "Defense", "Blocks and alters shots at the rim.", &[("block", 80), ("interior_def", 76)], &[("block", 0.020), ("rim_d", 0.015)]),
-        bd("intimidator", "Intimidator", "Defense", "Shooters in his area miss more.", &[("interior_def", 82), ("strength", 70)], &[("rim_d", 0.012)]),
-        bd("interceptor", "Interceptor", "Defense", "Jumps passing lanes.", &[("steal", 80), ("pass_perception", 76)], &[("steal", 0.020)]),
-        bd("pick_dodger", "Pick Dodger", "Defense", "Fights through screens.", &[("lateral_quickness", 74), ("perimeter_def", 70)], &[("perim_d", 0.008)]),
-        bd("chase_down", "Chase Down Artist", "Defense", "Hunts down transition layups.", &[("speed", 82), ("vertical", 76), ("block", 65)], &[("block", 0.010)]),
-        bd("brick_wall", "Brick Wall", "Defense", "Immovable screens and box-outs.", &[("strength", 84), ("interior_def", 70)], &[("dreb", 0.010)]),
+        bd(
+            "clamps",
+            "Clamps",
+            "Defense",
+            "Sticks to ball handlers like glue.",
+            &[("perimeter_def", 82), ("lateral_quickness", 78)],
+            &[("perim_d", 0.020)],
+        ),
+        bd(
+            "rim_protector",
+            "Rim Protector",
+            "Defense",
+            "Blocks and alters shots at the rim.",
+            &[("block", 80), ("interior_def", 76)],
+            &[("block", 0.020), ("rim_d", 0.015)],
+        ),
+        bd(
+            "intimidator",
+            "Intimidator",
+            "Defense",
+            "Shooters in his area miss more.",
+            &[("interior_def", 82), ("strength", 70)],
+            &[("rim_d", 0.012)],
+        ),
+        bd(
+            "interceptor",
+            "Interceptor",
+            "Defense",
+            "Jumps passing lanes.",
+            &[("steal", 80), ("pass_perception", 76)],
+            &[("steal", 0.020)],
+        ),
+        bd(
+            "pick_dodger",
+            "Pick Dodger",
+            "Defense",
+            "Fights through screens.",
+            &[("lateral_quickness", 74), ("perimeter_def", 70)],
+            &[("perim_d", 0.008)],
+        ),
+        bd(
+            "chase_down",
+            "Chase Down Artist",
+            "Defense",
+            "Hunts down transition layups.",
+            &[("speed", 82), ("vertical", 76), ("block", 65)],
+            &[("block", 0.010)],
+        ),
+        bd(
+            "brick_wall",
+            "Brick Wall",
+            "Defense",
+            "Immovable screens and box-outs.",
+            &[("strength", 84), ("interior_def", 70)],
+            &[("dreb", 0.010)],
+        ),
         // Rebounding
-        bd("rebound_chaser", "Rebound Chaser", "Rebounding", "Tracks down boards from anywhere.", &[("off_rebound", 78), ("hustle", 75)], &[("oreb", 0.015)]),
-        bd("glass_cleaner", "Glass Cleaner", "Rebounding", "Cleans the defensive glass.", &[("def_rebound", 80), ("strength", 70)], &[("dreb", 0.020)]),
+        bd(
+            "rebound_chaser",
+            "Rebound Chaser",
+            "Rebounding",
+            "Tracks down boards from anywhere.",
+            &[("off_rebound", 78), ("hustle", 75)],
+            &[("oreb", 0.015)],
+        ),
+        bd(
+            "glass_cleaner",
+            "Glass Cleaner",
+            "Rebounding",
+            "Cleans the defensive glass.",
+            &[("def_rebound", 80), ("strength", 70)],
+            &[("dreb", 0.020)],
+        ),
         // General
-        bd("tireless", "Tireless Worker", "General", "Slow to tire.", &[("stamina", 85)], &[("stamina", 0.10)]),
-        bd("iron_man", "Iron Man", "General", "Rarely hurt.", &[("durability", 88)], &[("injury", -0.10)]),
-        bd("clean_hands", "Disciplined", "General", "Avoids silly fouls.", &[("discipline", 82)], &[("foul_avoid", 0.12)]),
-        bd("heart", "Heart of a Champion", "General", "Elevates in big moments.", &[("clutch", 82), ("hustle", 78)], &[("clutch", 0.010), ("team_boost", 0.004)]),
+        bd(
+            "tireless",
+            "Tireless Worker",
+            "General",
+            "Slow to tire.",
+            &[("stamina", 85)],
+            &[("stamina", 0.10)],
+        ),
+        bd(
+            "iron_man",
+            "Iron Man",
+            "General",
+            "Rarely hurt.",
+            &[("durability", 88)],
+            &[("injury", -0.10)],
+        ),
+        bd(
+            "clean_hands",
+            "Disciplined",
+            "General",
+            "Avoids silly fouls.",
+            &[("discipline", 82)],
+            &[("foul_avoid", 0.12)],
+        ),
+        bd(
+            "heart",
+            "Heart of a Champion",
+            "General",
+            "Elevates in big moments.",
+            &[("clutch", 82), ("hustle", 78)],
+            &[("clutch", 0.010), ("team_boost", 0.004)],
+        ),
     ]
 }
 
@@ -454,27 +701,50 @@ impl StatLine {
         self.per(self.min)
     }
     pub fn fg_pct(&self) -> f64 {
-        if self.fga == 0 { 0.0 } else { self.fgm as f64 / self.fga as f64 }
+        if self.fga == 0 {
+            0.0
+        } else {
+            self.fgm as f64 / self.fga as f64
+        }
     }
     pub fn tp_pct(&self) -> f64 {
-        if self.tpa == 0 { 0.0 } else { self.tpm as f64 / self.tpa as f64 }
+        if self.tpa == 0 {
+            0.0
+        } else {
+            self.tpm as f64 / self.tpa as f64
+        }
     }
     pub fn ft_pct(&self) -> f64 {
-        if self.fta == 0 { 0.0 } else { self.ftm as f64 / self.fta as f64 }
+        if self.fta == 0 {
+            0.0
+        } else {
+            self.ftm as f64 / self.fta as f64
+        }
     }
     /// True shooting %.
     pub fn ts_pct(&self) -> f64 {
         let d = 2.0 * (self.fga as f64 + 0.44 * self.fta as f64);
-        if d == 0.0 { 0.0 } else { self.pts as f64 / d }
+        if d == 0.0 {
+            0.0
+        } else {
+            self.pts as f64 / d
+        }
     }
     /// A simple, transparent box-score value rating (similar to "Game Score" per game).
     pub fn game_score_pg(&self) -> f64 {
         if self.g == 0 {
             return 0.0;
         }
-        let t = self.pts as f64 + 0.4 * self.fgm as f64 - 0.7 * self.fga as f64 - 0.4 * (self.fta - self.ftm) as f64
-            + 0.7 * self.orb as f64 + 0.3 * self.drb as f64 + self.stl as f64 + 0.7 * self.ast as f64 + 0.7 * self.blk as f64
-            - 0.4 * self.pf as f64 - self.tov as f64;
+        let t = self.pts as f64 + 0.4 * self.fgm as f64
+            - 0.7 * self.fga as f64
+            - 0.4 * (self.fta - self.ftm) as f64
+            + 0.7 * self.orb as f64
+            + 0.3 * self.drb as f64
+            + self.stl as f64
+            + 0.7 * self.ast as f64
+            + 0.7 * self.blk as f64
+            - 0.4 * self.pf as f64
+            - self.tov as f64;
         t / self.g as f64
     }
 }
@@ -593,20 +863,48 @@ impl DevFocus {
     }
     pub fn parse(s: &str) -> Option<DevFocus> {
         let s = s.to_lowercase();
-        DevFocus::ALL.iter().copied().find(|f| f.name().to_lowercase().starts_with(&s) || format!("{f:?}").to_lowercase() == s)
+        DevFocus::ALL.iter().copied().find(|f| {
+            f.name().to_lowercase().starts_with(&s) || format!("{f:?}").to_lowercase() == s
+        })
     }
     /// Attributes this focus pushes.
     pub fn targets(self) -> &'static [Attr] {
         match self {
             DevFocus::Balanced => &[],
-            DevFocus::Shooting => &[Attr::ThreePoint, Attr::MidRange, Attr::FreeThrow, Attr::CloseShot],
-            DevFocus::Finishing => &[Attr::Layup, Attr::DrivingDunk, Attr::PostControl, Attr::DrawFoul],
-            DevFocus::Playmaking => &[Attr::BallHandle, Attr::PassAccuracy, Attr::PassIq, Attr::PassVision],
-            DevFocus::Defense => &[Attr::PerimeterDef, Attr::InteriorDef, Attr::Steal, Attr::Block, Attr::HelpDefIq],
+            DevFocus::Shooting => &[
+                Attr::ThreePoint,
+                Attr::MidRange,
+                Attr::FreeThrow,
+                Attr::CloseShot,
+            ],
+            DevFocus::Finishing => &[
+                Attr::Layup,
+                Attr::DrivingDunk,
+                Attr::PostControl,
+                Attr::DrawFoul,
+            ],
+            DevFocus::Playmaking => &[
+                Attr::BallHandle,
+                Attr::PassAccuracy,
+                Attr::PassIq,
+                Attr::PassVision,
+            ],
+            DevFocus::Defense => &[
+                Attr::PerimeterDef,
+                Attr::InteriorDef,
+                Attr::Steal,
+                Attr::Block,
+                Attr::HelpDefIq,
+            ],
             DevFocus::Rebounding => &[Attr::OffRebound, Attr::DefRebound, Attr::Hustle],
             DevFocus::Athleticism => &[Attr::Speed, Attr::Agility, Attr::Strength, Attr::Vertical],
             DevFocus::Conditioning => &[Attr::Stamina, Attr::Durability],
-            DevFocus::FilmStudy => &[Attr::ShotIq, Attr::PassIq, Attr::HelpDefIq, Attr::Discipline],
+            DevFocus::FilmStudy => &[
+                Attr::ShotIq,
+                Attr::PassIq,
+                Attr::HelpDefIq,
+                Attr::Discipline,
+            ],
         }
     }
 }
@@ -627,7 +925,15 @@ pub struct Mood {
 
 impl Default for Mood {
     fn default() -> Self {
-        Mood { overall: 65.0, playing_time: 60.0, winning: 55.0, contract: 60.0, role: 60.0, team_chemistry: 60.0, wants_trade: false }
+        Mood {
+            overall: 65.0,
+            playing_time: 60.0,
+            winning: 55.0,
+            contract: 60.0,
+            role: 60.0,
+            team_chemistry: 60.0,
+            wants_trade: false,
+        }
     }
 }
 
@@ -691,7 +997,11 @@ impl Player {
         format!("{} {}", self.first, self.last)
     }
     pub fn short_name(&self) -> String {
-        format!("{}. {}", self.first.chars().next().unwrap_or('?'), self.last)
+        format!(
+            "{}. {}",
+            self.first.chars().next().unwrap_or('?'),
+            self.last
+        )
     }
     pub fn age(&self, season: Season) -> i32 {
         season - self.birth_year
@@ -704,7 +1014,10 @@ impl Player {
         }
     }
     pub fn is_active_pro(&self) -> bool {
-        matches!(self.affiliation, Affiliation::Nba(_) | Affiliation::GLeague(_))
+        matches!(
+            self.affiliation,
+            Affiliation::Nba(_) | Affiliation::GLeague(_)
+        )
     }
     pub fn team_id(&self) -> Option<TeamId> {
         match self.affiliation {
@@ -719,7 +1032,10 @@ impl Player {
         format!("{}'{}\"", self.height_in / 12, self.height_in % 12)
     }
     pub fn is_injured(&self) -> bool {
-        self.injury.as_ref().map(|i| i.games_remaining > 0).unwrap_or(false)
+        self.injury
+            .as_ref()
+            .map(|i| i.games_remaining > 0)
+            .unwrap_or(false)
     }
     pub fn badge_tier(&self, id: &str) -> Option<Tier> {
         self.badges.iter().find(|b| b.id == id).map(|b| b.tier)
@@ -736,7 +1052,10 @@ impl Player {
         self.contract.as_ref().map(|c| c.salary()).unwrap_or(0)
     }
     pub fn pro_seasons(&self) -> usize {
-        self.seasons.iter().filter(|s| s.level == Level::Pro).count()
+        self.seasons
+            .iter()
+            .filter(|s| s.level == Level::Pro)
+            .count()
     }
 }
 
@@ -765,7 +1084,13 @@ pub fn earned_badges(attrs: &Attrs, defs: &[BadgeDef], limit: usize) -> Vec<Play
         }
         let step = d.tier_step.max(1) as f64;
         let level = ((margin / step).floor() as i64 + 1).clamp(1, 4) as u8;
-        found.push((margin, PlayerBadge { id: d.id.clone(), tier: Tier::from_level(level).unwrap() }));
+        found.push((
+            margin,
+            PlayerBadge {
+                id: d.id.clone(),
+                tier: Tier::from_level(level).unwrap(),
+            },
+        ));
     }
     found.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
     found.into_iter().take(limit).map(|x| x.1).collect()
@@ -778,7 +1103,14 @@ mod tests {
     #[test]
     fn overall_orders_sensibly() {
         let mut star = Attrs::new(55);
-        for a in [Attr::ThreePoint, Attr::MidRange, Attr::BallHandle, Attr::Layup, Attr::Speed, Attr::PerimeterDef] {
+        for a in [
+            Attr::ThreePoint,
+            Attr::MidRange,
+            Attr::BallHandle,
+            Attr::Layup,
+            Attr::Speed,
+            Attr::PerimeterDef,
+        ] {
             star.set(a, 88.0);
         }
         let avg = Attrs::new(55);

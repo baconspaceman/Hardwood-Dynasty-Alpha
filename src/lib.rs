@@ -15,19 +15,37 @@
 //! * [`content`] - the content registry and mod system
 
 pub mod awards;
+pub mod calendar;
+pub mod career;
+pub mod college;
 pub mod content;
 pub mod contract;
+pub mod draft;
 pub mod economy;
 pub mod era;
 pub mod events;
+pub mod fastsim;
+pub mod finance;
 pub mod franchise;
 pub mod game;
 pub mod generate;
+pub mod import;
 pub mod injury;
+pub mod league;
+pub mod leagueevents;
 pub mod life;
 pub mod names;
+pub mod offseason;
+pub mod overseas;
 pub mod player;
+pub mod playoffs;
+pub mod progression;
+pub mod records;
 pub mod rng;
+pub mod season;
 pub mod settings;
+pub mod setup;
 pub mod story;
+pub mod team;
+pub mod trade;
 pub mod types;

@@ -37,7 +37,13 @@ pub enum SettingValue {
 impl SettingValue {
     pub fn show(&self) -> String {
         match self {
-            SettingValue::Bool(b) => if *b { "ON".into() } else { "OFF".into() },
+            SettingValue::Bool(b) => {
+                if *b {
+                    "ON".into()
+                } else {
+                    "OFF".into()
+                }
+            }
             SettingValue::Num(n) => {
                 if (n - n.round()).abs() < 1e-9 {
                     format!("{}", *n as i64)
@@ -75,7 +81,15 @@ impl SettingDef {
     }
 }
 
-fn toggle(key: &str, name: &str, desc: &str, default: bool, on: &str, off: &str, advanced: bool) -> SettingDef {
+fn toggle(
+    key: &str,
+    name: &str,
+    desc: &str,
+    default: bool,
+    on: &str,
+    off: &str,
+    advanced: bool,
+) -> SettingDef {
     SettingDef {
         key: key.into(),
         name: name.into(),
@@ -89,7 +103,18 @@ fn toggle(key: &str, name: &str, desc: &str, default: bool, on: &str, off: &str,
 }
 
 #[allow(clippy::too_many_arguments)]
-fn slider(key: &str, name: &str, desc: &str, min: f64, max: f64, step: f64, default: f64, low: &str, high: &str, advanced: bool) -> SettingDef {
+fn slider(
+    key: &str,
+    name: &str,
+    desc: &str,
+    min: f64,
+    max: f64,
+    step: f64,
+    default: f64,
+    low: &str,
+    high: &str,
+    advanced: bool,
+) -> SettingDef {
     SettingDef {
         key: key.into(),
         name: name.into(),
@@ -102,7 +127,14 @@ fn slider(key: &str, name: &str, desc: &str, min: f64, max: f64, step: f64, defa
     }
 }
 
-fn choice(key: &str, name: &str, desc: &str, default: &str, opts: &[(&str, &str, &str)], advanced: bool) -> SettingDef {
+fn choice(
+    key: &str,
+    name: &str,
+    desc: &str,
+    default: &str,
+    opts: &[(&str, &str, &str)],
+    advanced: bool,
+) -> SettingDef {
     SettingDef {
         key: key.into(),
         name: name.into(),
@@ -110,7 +142,11 @@ fn choice(key: &str, name: &str, desc: &str, default: &str, opts: &[(&str, &str,
         kind: SettingKind::Choice {
             options: opts
                 .iter()
-                .map(|(id, label, explain)| ChoiceOption { id: id.to_string(), label: label.to_string(), explain: explain.to_string() })
+                .map(|(id, label, explain)| ChoiceOption {
+                    id: id.to_string(),
+                    label: label.to_string(),
+                    explain: explain.to_string(),
+                })
                 .collect(),
         },
         default: SettingValue::Text(default.into()),
@@ -340,26 +376,70 @@ pub fn builtin_presets() -> Vec<Preset> {
         values: vals.into_iter().map(|(k, v)| (k.to_string(), v)).collect(),
     };
     vec![
-        mk("balanced", "Balanced", "The default experience: realistic but forgiving.", vec![]),
-        mk("arcade", "Arcade", "Fewer injuries, stars dominate, easier owner. Fun and fast.", vec![
-            ("injuries.frequency", Num(0.4)), ("injuries.career_ending", Num(0.0)), ("sim.star_power", Num(1.3)),
-            ("difficulty.owner_patience", Num(2.0)), ("difficulty.can_be_fired", Bool(false)), ("sim.randomness", Num(1.2)),
-            ("life.intensity", Num(0.5)), ("progression.speed", Num(1.2)),
-        ]),
-        mk("sim", "Sim", "A serious simulation: scouting fog, real injuries, smart AI.", vec![
-            ("injuries.frequency", Num(1.2)), ("injuries.career_ending", Num(1.5)), ("draft.scouting_fog", Num(1.3)),
-            ("ai.trade_pickiness", Num(1.4)), ("progression.variance", Num(1.3)), ("difficulty.budget_strictness", Num(1.3)),
-        ]),
-        mk("hardcore", "Hardcore Realism", "Brutal injuries, picky AI, impatient owners, hidden potential, full life sim.", vec![
-            ("injuries.frequency", Num(1.6)), ("injuries.severity", Num(1.4)), ("injuries.career_ending", Num(2.5)),
-            ("injuries.permanent_damage", Num(1.5)), ("draft.scouting_fog", Num(1.6)), ("ai.trade_pickiness", Num(1.8)),
-            ("difficulty.owner_patience", Num(0.7)), ("difficulty.budget_strictness", Num(1.6)), ("life.intensity", Num(2.0)),
-            ("sim.randomness", Num(1.15)),
-        ]),
-        mk("sandbox", "Sandbox", "No fear: no injuries, no firing, no luxury tax. Build whatever you want.", vec![
-            ("injuries.frequency", Num(0.0)), ("difficulty.can_be_fired", Bool(false)), ("economy.luxury_tax", Bool(false)),
-            ("economy.aprons", Bool(false)), ("ai.trade_pickiness", Num(0.5)), ("difficulty.budget_strictness", Num(0.0)),
-        ]),
+        mk(
+            "balanced",
+            "Balanced",
+            "The default experience: realistic but forgiving.",
+            vec![],
+        ),
+        mk(
+            "arcade",
+            "Arcade",
+            "Fewer injuries, stars dominate, easier owner. Fun and fast.",
+            vec![
+                ("injuries.frequency", Num(0.4)),
+                ("injuries.career_ending", Num(0.0)),
+                ("sim.star_power", Num(1.3)),
+                ("difficulty.owner_patience", Num(2.0)),
+                ("difficulty.can_be_fired", Bool(false)),
+                ("sim.randomness", Num(1.2)),
+                ("life.intensity", Num(0.5)),
+                ("progression.speed", Num(1.2)),
+            ],
+        ),
+        mk(
+            "sim",
+            "Sim",
+            "A serious simulation: scouting fog, real injuries, smart AI.",
+            vec![
+                ("injuries.frequency", Num(1.2)),
+                ("injuries.career_ending", Num(1.5)),
+                ("draft.scouting_fog", Num(1.3)),
+                ("ai.trade_pickiness", Num(1.4)),
+                ("progression.variance", Num(1.3)),
+                ("difficulty.budget_strictness", Num(1.3)),
+            ],
+        ),
+        mk(
+            "hardcore",
+            "Hardcore Realism",
+            "Brutal injuries, picky AI, impatient owners, hidden potential, full life sim.",
+            vec![
+                ("injuries.frequency", Num(1.6)),
+                ("injuries.severity", Num(1.4)),
+                ("injuries.career_ending", Num(2.5)),
+                ("injuries.permanent_damage", Num(1.5)),
+                ("draft.scouting_fog", Num(1.6)),
+                ("ai.trade_pickiness", Num(1.8)),
+                ("difficulty.owner_patience", Num(0.7)),
+                ("difficulty.budget_strictness", Num(1.6)),
+                ("life.intensity", Num(2.0)),
+                ("sim.randomness", Num(1.15)),
+            ],
+        ),
+        mk(
+            "sandbox",
+            "Sandbox",
+            "No fear: no injuries, no firing, no luxury tax. Build whatever you want.",
+            vec![
+                ("injuries.frequency", Num(0.0)),
+                ("difficulty.can_be_fired", Bool(false)),
+                ("economy.luxury_tax", Bool(false)),
+                ("economy.aprons", Bool(false)),
+                ("ai.trade_pickiness", Num(0.5)),
+                ("difficulty.budget_strictness", Num(0.0)),
+            ],
+        ),
     ]
 }
 
@@ -379,14 +459,19 @@ impl Default for Settings {
 
 impl Settings {
     pub fn with_defs(defs: Vec<SettingDef>) -> Self {
-        let values = defs.iter().map(|d| (d.key.clone(), d.default.clone())).collect();
+        let values = defs
+            .iter()
+            .map(|d| (d.key.clone(), d.default.clone()))
+            .collect();
         Settings { defs, values }
     }
 
     /// Re-attach definitions after loading a save (definitions are not saved; values are).
     pub fn set_defs(&mut self, defs: Vec<SettingDef>) {
         for d in &defs {
-            self.values.entry(d.key.clone()).or_insert_with(|| d.default.clone());
+            self.values
+                .entry(d.key.clone())
+                .or_insert_with(|| d.default.clone());
         }
         self.defs = defs;
     }
@@ -435,7 +520,12 @@ impl Settings {
 
     /// Set a value, validating it against the definition. Errors are written for humans.
     pub fn set(&mut self, key: &str, value: SettingValue) -> Result<(), String> {
-        let def = self.def(key).ok_or_else(|| format!("There is no setting called '{key}'. Try 'settings search <word>'."))?.clone();
+        let def = self
+            .def(key)
+            .ok_or_else(|| {
+                format!("There is no setting called '{key}'. Try 'settings search <word>'.")
+            })?
+            .clone();
         let fixed = match (&def.kind, value) {
             (SettingKind::Toggle, SettingValue::Bool(b)) => SettingValue::Bool(b),
             (SettingKind::Toggle, SettingValue::Text(t)) => match t.to_lowercase().as_str() {
@@ -446,24 +536,57 @@ impl Settings {
             (SettingKind::Slider { min, max, step }, v) => {
                 let n = match v {
                     SettingValue::Num(n) => n,
-                    SettingValue::Text(t) => t.parse::<f64>().map_err(|_| format!("'{}' needs a number between {min} and {max}.", def.name))?,
-                    SettingValue::Bool(_) => return Err(format!("'{}' needs a number between {min} and {max}.", def.name)),
+                    SettingValue::Text(t) => t.parse::<f64>().map_err(|_| {
+                        format!("'{}' needs a number between {min} and {max}.", def.name)
+                    })?,
+                    SettingValue::Bool(_) => {
+                        return Err(format!(
+                            "'{}' needs a number between {min} and {max}.",
+                            def.name
+                        ))
+                    }
                 };
                 if n < *min - 1e-9 || n > *max + 1e-9 {
-                    return Err(format!("'{}' must be between {min} and {max} (you gave {n}).", def.name));
+                    return Err(format!(
+                        "'{}' must be between {min} and {max} (you gave {n}).",
+                        def.name
+                    ));
                 }
-                let snapped = if *step > 0.0 { ((n / step).round() * step * 1e6).round() / 1e6 } else { n };
+                let snapped = if *step > 0.0 {
+                    ((n / step).round() * step * 1e6).round() / 1e6
+                } else {
+                    n
+                };
                 SettingValue::Num(snapped.clamp(*min, *max))
             }
             (SettingKind::Choice { options }, v) => {
                 let t = match v {
                     SettingValue::Text(t) => t,
-                    _ => return Err(format!("'{}' needs one of: {}.", def.name, options.iter().map(|o| o.id.as_str()).collect::<Vec<_>>().join(", "))),
+                    _ => {
+                        return Err(format!(
+                            "'{}' needs one of: {}.",
+                            def.name,
+                            options
+                                .iter()
+                                .map(|o| o.id.as_str())
+                                .collect::<Vec<_>>()
+                                .join(", ")
+                        ))
+                    }
                 };
                 if options.iter().any(|o| o.id == t) {
                     SettingValue::Text(t)
                 } else {
-                    return Err(format!("'{}' has no option '{}'. Options: {}.", def.name, t, options.iter().map(|o| o.id.as_str()).collect::<Vec<_>>().join(", ")));
+                    return Err(format!(
+                        "'{}' has no option '{}'. Options: {}.",
+                        def.name,
+                        t,
+                        options
+                            .iter()
+                            .map(|o| o.id.as_str())
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    ));
                 }
             }
             (SettingKind::Toggle, SettingValue::Num(n)) => SettingValue::Bool(n != 0.0),
@@ -479,14 +602,23 @@ impl Settings {
     }
 
     pub fn reset_category(&mut self, cat: &str) {
-        let keys: Vec<String> = self.defs.iter().filter(|d| d.category() == cat).map(|d| d.key.clone()).collect();
+        let keys: Vec<String> = self
+            .defs
+            .iter()
+            .filter(|d| d.category() == cat)
+            .map(|d| d.key.clone())
+            .collect();
         for k in keys {
             self.reset(&k);
         }
     }
 
     pub fn apply_preset(&mut self, preset: &Preset) {
-        let defaults: Vec<(String, SettingValue)> = self.defs.iter().map(|d| (d.key.clone(), d.default.clone())).collect();
+        let defaults: Vec<(String, SettingValue)> = self
+            .defs
+            .iter()
+            .map(|d| (d.key.clone(), d.default.clone()))
+            .collect();
         for (k, v) in defaults {
             self.values.insert(k, v);
         }
@@ -499,7 +631,12 @@ impl Settings {
     pub fn changed(&self) -> Vec<(&SettingDef, &SettingValue)> {
         self.defs
             .iter()
-            .filter_map(|d| self.values.get(&d.key).filter(|v| **v != d.default).map(|v| (d, v)))
+            .filter_map(|d| {
+                self.values
+                    .get(&d.key)
+                    .filter(|v| **v != d.default)
+                    .map(|v| (d, v))
+            })
             .collect()
     }
 
@@ -507,7 +644,11 @@ impl Settings {
         let w = word.to_lowercase();
         self.defs
             .iter()
-            .filter(|d| d.key.to_lowercase().contains(&w) || d.name.to_lowercase().contains(&w) || d.description.to_lowercase().contains(&w))
+            .filter(|d| {
+                d.key.to_lowercase().contains(&w)
+                    || d.name.to_lowercase().contains(&w)
+                    || d.description.to_lowercase().contains(&w)
+            })
             .collect()
     }
 
@@ -515,13 +656,23 @@ impl Settings {
     pub fn explain(&self, key: &str) -> Option<String> {
         let d = self.def(key)?;
         let cur = self.values.get(key).map(|v| v.show()).unwrap_or_default();
-        let mut s = format!("{}  [{}]\n  {}\n  Now: {}   Default: {}\n", d.name, d.key, d.description, cur, d.default.show());
+        let mut s = format!(
+            "{}  [{}]\n  {}\n  Now: {}   Default: {}\n",
+            d.name,
+            d.key,
+            d.description,
+            cur,
+            d.default.show()
+        );
         match &d.kind {
             SettingKind::Toggle => {
                 s += &format!("  ON : {}\n  OFF: {}\n", d.high_note, d.low_note);
             }
             SettingKind::Slider { min, max, .. } => {
-                s += &format!("  Range {min} to {max}\n  Low : {}\n  High: {}\n", d.low_note, d.high_note);
+                s += &format!(
+                    "  Range {min} to {max}\n  Low : {}\n  High: {}\n",
+                    d.low_note, d.high_note
+                );
             }
             SettingKind::Choice { options } => {
                 for o in options {
@@ -534,7 +685,10 @@ impl Settings {
 
     /// Export only the values that were changed, for sharing a settings file.
     pub fn export_changed(&self) -> BTreeMap<String, SettingValue> {
-        self.changed().into_iter().map(|(d, v)| (d.key.clone(), v.clone())).collect()
+        self.changed()
+            .into_iter()
+            .map(|(d, v)| (d.key.clone(), v.clone()))
+            .collect()
     }
 
     pub fn import_values(&mut self, vals: &BTreeMap<String, SettingValue>) -> Vec<String> {
@@ -559,14 +713,24 @@ mod tests {
         for d in &defs {
             assert!(keys.insert(d.key.clone()), "duplicate key {}", d.key);
             assert!(d.description.len() > 10, "{} lacks a description", d.key);
-            assert!(CATEGORIES.iter().any(|(c, _)| *c == d.category()), "unknown category for {}", d.key);
+            assert!(
+                CATEGORIES.iter().any(|(c, _)| *c == d.category()),
+                "unknown category for {}",
+                d.key
+            );
             match (&d.kind, &d.default) {
                 (SettingKind::Slider { min, max, .. }, SettingValue::Num(n)) => {
                     assert!(n >= min && n <= max, "{} default out of range", d.key);
-                    assert!(!d.low_note.is_empty() && !d.high_note.is_empty(), "{} needs low/high notes", d.key);
+                    assert!(
+                        !d.low_note.is_empty() && !d.high_note.is_empty(),
+                        "{} needs low/high notes",
+                        d.key
+                    );
                 }
                 (SettingKind::Toggle, SettingValue::Bool(_)) => {}
-                (SettingKind::Choice { options }, SettingValue::Text(t)) => assert!(options.iter().any(|o| &o.id == t)),
+                (SettingKind::Choice { options }, SettingValue::Text(t)) => {
+                    assert!(options.iter().any(|o| &o.id == t))
+                }
                 _ => panic!("{} has mismatched kind/default", d.key),
             }
         }
@@ -586,9 +750,13 @@ mod tests {
     #[test]
     fn set_validates() {
         let mut s = Settings::default();
-        assert!(s.set("injuries.frequency", SettingValue::Num(99.0)).is_err());
+        assert!(s
+            .set("injuries.frequency", SettingValue::Num(99.0))
+            .is_err());
         assert!(s.set("injuries.frequency", SettingValue::Num(2.0)).is_ok());
-        assert!(s.set("sim.hot_hand", SettingValue::Text("off".into())).is_ok());
+        assert!(s
+            .set("sim.hot_hand", SettingValue::Text("off".into()))
+            .is_ok());
         assert!(!s.bool("sim.hot_hand"));
         assert!(s.set("nope", SettingValue::Num(1.0)).is_err());
     }

@@ -56,25 +56,183 @@ fn far() -> i32 {
 }
 
 #[allow(clippy::too_many_arguments)]
-fn aw(id: &str, name: &str, first: i32, kind: AwardKind, metric: &[(&str, f64)], min_g: f64, min_mpg: f64, noise: f64) -> AwardDef {
+fn aw(
+    id: &str,
+    name: &str,
+    first: i32,
+    kind: AwardKind,
+    metric: &[(&str, f64)],
+    min_g: f64,
+    min_mpg: f64,
+    noise: f64,
+) -> AwardDef {
     AwardDef {
-        id: id.into(), name: name.into(), first_year: first, last_year: far(), kind, metric: metric.iter().map(|(k, v)| (k.to_string(), *v)).collect(),
-        min_games_pct: min_g, min_mpg, rookies_only: false, bench_only: false, team_size: 0, count: 0, noise,
+        id: id.into(),
+        name: name.into(),
+        first_year: first,
+        last_year: far(),
+        kind,
+        metric: metric.iter().map(|(k, v)| (k.to_string(), *v)).collect(),
+        min_games_pct: min_g,
+        min_mpg,
+        rookies_only: false,
+        bench_only: false,
+        team_size: 0,
+        count: 0,
+        noise,
     }
 }
 
 pub fn builtin_awards() -> Vec<AwardDef> {
-    let off = &[("ppg", 1.0), ("rpg", 0.55), ("apg", 0.75), ("spg", 0.9), ("bpg", 0.7), ("ts", 18.0), ("win_pct", 28.0), ("ovr", 0.15)];
+    let off = &[
+        ("ppg", 1.0),
+        ("rpg", 0.55),
+        ("apg", 0.75),
+        ("spg", 0.9),
+        ("bpg", 0.7),
+        ("ts", 18.0),
+        ("win_pct", 28.0),
+        ("ovr", 0.15),
+    ];
     vec![
-        aw("mvp", "Most Valuable Player", 1955, AwardKind::Single, off, 0.6, 25.0, 0.05),
-        aw("dpoy", "Defensive Player of the Year", 1982, AwardKind::Single, &[("spg", 3.0), ("bpg", 3.0), ("rpg", 0.6), ("def_rating", 0.08), ("win_pct", 6.0)], 0.6, 22.0, 0.06),
-        AwardDef { rookies_only: true, ..aw("roy", "Rookie of the Year", 1952, AwardKind::Single, &[("ppg", 1.0), ("rpg", 0.6), ("apg", 0.7), ("spg", 0.6), ("bpg", 0.5), ("ts", 10.0), ("win_pct", 6.0)], 0.5, 15.0, 0.04) },
-        AwardDef { bench_only: true, ..aw("sixth", "Sixth Man of the Year", 1982, AwardKind::Single, &[("ppg", 1.0), ("rpg", 0.5), ("apg", 0.6), ("ts", 12.0), ("win_pct", 5.0)], 0.5, 15.0, 0.04) },
-        aw("mip", "Most Improved Player", 1985, AwardKind::Single, &[("ovr_gain", 2.5), ("ppg", 0.35), ("win_pct", 3.0)], 0.5, 15.0, 0.06),
-        AwardDef { team_size: 5, count: 3, ..aw("all_league", "All-League Team", 1946, AwardKind::AllTeam, off, 0.5, 20.0, 0.03) },
-        AwardDef { team_size: 5, count: 2, ..aw("all_defense", "All-Defensive Team", 1968, AwardKind::AllTeam, &[("spg", 3.0), ("bpg", 3.0), ("rpg", 0.6), ("def_rating", 0.08), ("win_pct", 6.0)], 0.5, 20.0, 0.05) },
-        AwardDef { team_size: 5, count: 2, rookies_only: true, ..aw("all_rookie", "All-Rookie Team", 1962, AwardKind::AllTeam, &[("ppg", 1.0), ("rpg", 0.6), ("apg", 0.7), ("ts", 10.0)], 0.4, 12.0, 0.04) },
-        AwardDef { count: 24, ..aw("all_star", "All-Star Selection", 1950, AwardKind::Roster, off, 0.4, 20.0, 0.08) },
+        aw(
+            "mvp",
+            "Most Valuable Player",
+            1955,
+            AwardKind::Single,
+            off,
+            0.6,
+            25.0,
+            0.05,
+        ),
+        aw(
+            "dpoy",
+            "Defensive Player of the Year",
+            1982,
+            AwardKind::Single,
+            &[
+                ("spg", 3.0),
+                ("bpg", 3.0),
+                ("rpg", 0.6),
+                ("def_rating", 0.08),
+                ("win_pct", 6.0),
+            ],
+            0.6,
+            22.0,
+            0.06,
+        ),
+        AwardDef {
+            rookies_only: true,
+            ..aw(
+                "roy",
+                "Rookie of the Year",
+                1952,
+                AwardKind::Single,
+                &[
+                    ("ppg", 1.0),
+                    ("rpg", 0.6),
+                    ("apg", 0.7),
+                    ("spg", 0.6),
+                    ("bpg", 0.5),
+                    ("ts", 10.0),
+                    ("win_pct", 6.0),
+                ],
+                0.5,
+                15.0,
+                0.04,
+            )
+        },
+        AwardDef {
+            bench_only: true,
+            ..aw(
+                "sixth",
+                "Sixth Man of the Year",
+                1982,
+                AwardKind::Single,
+                &[
+                    ("ppg", 1.0),
+                    ("rpg", 0.5),
+                    ("apg", 0.6),
+                    ("ts", 12.0),
+                    ("win_pct", 5.0),
+                ],
+                0.5,
+                15.0,
+                0.04,
+            )
+        },
+        aw(
+            "mip",
+            "Most Improved Player",
+            1985,
+            AwardKind::Single,
+            &[("ovr_gain", 2.5), ("ppg", 0.35), ("win_pct", 3.0)],
+            0.5,
+            15.0,
+            0.06,
+        ),
+        AwardDef {
+            team_size: 5,
+            count: 3,
+            ..aw(
+                "all_league",
+                "All-League Team",
+                1946,
+                AwardKind::AllTeam,
+                off,
+                0.5,
+                20.0,
+                0.03,
+            )
+        },
+        AwardDef {
+            team_size: 5,
+            count: 2,
+            ..aw(
+                "all_defense",
+                "All-Defensive Team",
+                1968,
+                AwardKind::AllTeam,
+                &[
+                    ("spg", 3.0),
+                    ("bpg", 3.0),
+                    ("rpg", 0.6),
+                    ("def_rating", 0.08),
+                    ("win_pct", 6.0),
+                ],
+                0.5,
+                20.0,
+                0.05,
+            )
+        },
+        AwardDef {
+            team_size: 5,
+            count: 2,
+            rookies_only: true,
+            ..aw(
+                "all_rookie",
+                "All-Rookie Team",
+                1962,
+                AwardKind::AllTeam,
+                &[("ppg", 1.0), ("rpg", 0.6), ("apg", 0.7), ("ts", 10.0)],
+                0.4,
+                12.0,
+                0.04,
+            )
+        },
+        AwardDef {
+            count: 24,
+            ..aw(
+                "all_star",
+                "All-Star Selection",
+                1950,
+                AwardKind::Roster,
+                off,
+                0.4,
+                20.0,
+                0.08,
+            )
+        },
     ]
 }
 
@@ -156,18 +314,32 @@ pub struct AwardResult {
 }
 
 /// Decide an award from candidates. Returns winners as (player, team-index).
-pub fn decide(def: &AwardDef, cands: &[Candidate], season_games: u16, season: Season, rng: &mut Rng) -> Option<AwardResult> {
+pub fn decide(
+    def: &AwardDef,
+    cands: &[Candidate],
+    season_games: u16,
+    season: Season,
+    rng: &mut Rng,
+) -> Option<AwardResult> {
     if season < def.first_year || season > def.last_year {
         return None;
     }
-    let mut scored: Vec<(f64, &Candidate)> = cands.iter().filter(|c| eligible(def, c, season_games)).map(|c| (score(def, c, rng), c)).collect();
+    let mut scored: Vec<(f64, &Candidate)> = cands
+        .iter()
+        .filter(|c| eligible(def, c, season_games))
+        .map(|c| (score(def, c, rng), c))
+        .collect();
     scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap());
     if scored.is_empty() {
         return None;
     }
     let winners: Vec<(PlayerId, u8)> = match def.kind {
         AwardKind::Single => vec![(scored[0].1.id, 0)],
-        AwardKind::Roster => scored.iter().take(def.count as usize).map(|(_, c)| (c.id, 0)).collect(),
+        AwardKind::Roster => scored
+            .iter()
+            .take(def.count as usize)
+            .map(|(_, c)| (c.id, 0))
+            .collect(),
         AwardKind::AllTeam => {
             // Early eras picked 2 forwards, 1 center, 2 guards; we simply take best 5 per team
             // while balancing so at most 3 players of one position group make a team.
@@ -178,7 +350,10 @@ pub fn decide(def: &AwardDef, cands: &[Candidate], season_games: u16, season: Se
                 let mut i = 0;
                 while team.len() < def.team_size as usize && i < pool.len() {
                     let c = pool[i];
-                    let same = team.iter().filter(|x| x.position_group == c.position_group).count();
+                    let same = team
+                        .iter()
+                        .filter(|x| x.position_group == c.position_group)
+                        .count();
                     if same < 3 {
                         team.push(c);
                         pool.remove(i);
@@ -195,7 +370,12 @@ pub fn decide(def: &AwardDef, cands: &[Candidate], season_games: u16, season: Se
             out
         }
     };
-    Some(AwardResult { season, award: def.name.clone(), award_id: def.id.clone(), winners })
+    Some(AwardResult {
+        season,
+        award: def.name.clone(),
+        award_id: def.id.clone(),
+        winners,
+    })
 }
 
 #[cfg(test)]
@@ -203,7 +383,27 @@ mod tests {
     use super::*;
 
     fn cand(id: u32, ppg: f64, win: f64) -> Candidate {
-        Candidate { id, team: 0, games: 78, started: 78, mpg: 34.0, ppg, rpg: 6.0, apg: 4.0, spg: 1.0, bpg: 0.5, ts: 0.57, fg_pct: 0.48, tov_pg: 2.0, team_win_pct: win, ovr: 80.0, ovr_gain: 0.0, def_rating: 100.0, rookie: false, position_group: (id % 3) as u8 }
+        Candidate {
+            id,
+            team: 0,
+            games: 78,
+            started: 78,
+            mpg: 34.0,
+            ppg,
+            rpg: 6.0,
+            apg: 4.0,
+            spg: 1.0,
+            bpg: 0.5,
+            ts: 0.57,
+            fg_pct: 0.48,
+            tov_pg: 2.0,
+            team_win_pct: win,
+            ovr: 80.0,
+            ovr_gain: 0.0,
+            def_rating: 100.0,
+            rookie: false,
+            position_group: (id % 3) as u8,
+        }
     }
 
     #[test]
@@ -220,7 +420,9 @@ mod tests {
     #[test]
     fn all_team_picks_five_per_team() {
         let mut rng = Rng::new(2);
-        let cands: Vec<Candidate> = (0..30).map(|i| cand(i, 30.0 - i as f64 * 0.5, 0.5)).collect();
+        let cands: Vec<Candidate> = (0..30)
+            .map(|i| cand(i, 30.0 - i as f64 * 0.5, 0.5))
+            .collect();
         let defs = builtin_awards();
         let at = defs.iter().find(|d| d.id == "all_league").unwrap();
         let r = decide(at, &cands, 82, 2000, &mut rng).unwrap();

@@ -78,12 +78,44 @@ pub struct ActivityDef {
     pub stages: Vec<String>,
 }
 
-fn stat(id: &str, name: &str, desc: &str, min: f64, max: f64, default: f64, drift_to: f64, rate: f64) -> LifeStatDef {
-    LifeStatDef { id: id.into(), name: name.into(), description: desc.into(), min, max, default, drift_to, drift_rate: rate }
+fn stat(
+    id: &str,
+    name: &str,
+    desc: &str,
+    min: f64,
+    max: f64,
+    default: f64,
+    drift_to: f64,
+    rate: f64,
+) -> LifeStatDef {
+    LifeStatDef {
+        id: id.into(),
+        name: name.into(),
+        description: desc.into(),
+        min,
+        max,
+        default,
+        drift_to,
+        drift_rate: rate,
+    }
 }
 
-fn act(id: &str, name: &str, desc: &str, pct: f64, eff: &[(&str, f64)], stages: &[&str]) -> ActivityDef {
-    ActivityDef { id: id.into(), name: name.into(), description: desc.into(), default_pct: pct, effects: eff.iter().map(|(k, v)| (k.to_string(), *v)).collect(), stages: stages.iter().map(|s| s.to_string()).collect() }
+fn act(
+    id: &str,
+    name: &str,
+    desc: &str,
+    pct: f64,
+    eff: &[(&str, f64)],
+    stages: &[&str],
+) -> ActivityDef {
+    ActivityDef {
+        id: id.into(),
+        name: name.into(),
+        description: desc.into(),
+        default_pct: pct,
+        effects: eff.iter().map(|(k, v)| (k.to_string(), *v)).collect(),
+        stages: stages.iter().map(|s| s.to_string()).collect(),
+    }
 }
 
 pub fn builtin_stats() -> Vec<LifeStatDef> {
@@ -127,20 +159,50 @@ pub fn builtin_activities() -> Vec<ActivityDef> {
 }
 
 fn cond(var: &str, op: &str, value: f64) -> Cond {
-    Cond { var: var.into(), op: op.into(), value }
+    Cond {
+        var: var.into(),
+        op: op.into(),
+        value,
+    }
 }
 
 #[allow(clippy::too_many_arguments)]
-fn ev(id: &str, title: &str, text: &str, cat: &str, chance: f64, stages: &[&str], conds: Vec<Cond>, effects: Vec<Effect>) -> EventDef {
+fn ev(
+    id: &str,
+    title: &str,
+    text: &str,
+    cat: &str,
+    chance: f64,
+    stages: &[&str],
+    conds: Vec<Cond>,
+    effects: Vec<Effect>,
+) -> EventDef {
     EventDef {
-        id: id.into(), title: title.into(), text: text.into(), category: cat.into(), chance,
-        stages: stages.iter().map(|s| s.to_string()).collect(), min_year: 0, max_year: 9999,
-        conditions: conds, once: false, cooldown: 0, effects, choices: vec![],
+        id: id.into(),
+        title: title.into(),
+        text: text.into(),
+        category: cat.into(),
+        chance,
+        stages: stages.iter().map(|s| s.to_string()).collect(),
+        min_year: 0,
+        max_year: 9999,
+        conditions: conds,
+        once: false,
+        cooldown: 0,
+        effects,
+        choices: vec![],
     }
 }
 
 fn ch(id: &str, label: &str, explain: &str, effects: Vec<Effect>, result: &str) -> Choice {
-    Choice { id: id.into(), label: label.into(), explain: explain.into(), conditions: vec![], effects, result: result.into() }
+    Choice {
+        id: id.into(),
+        label: label.into(),
+        explain: explain.into(),
+        conditions: vec![],
+        effects,
+        result: result.into(),
+    }
 }
 
 fn with_choices(mut e: EventDef, choices: Vec<Choice>) -> EventDef {
@@ -324,7 +386,11 @@ pub struct LifeDefs {
 
 impl Default for LifeDefs {
     fn default() -> Self {
-        LifeDefs { stats: builtin_stats(), activities: builtin_activities(), events: builtin_life_events() }
+        LifeDefs {
+            stats: builtin_stats(),
+            activities: builtin_activities(),
+            events: builtin_life_events(),
+        }
     }
 }
 
@@ -404,11 +470,35 @@ pub struct LifeState {
 
 impl LifeState {
     pub fn new(defs: &LifeDefs, stage: LifeStage, school: &str, class_year: u8) -> LifeState {
-        let stats = defs.stats.iter().map(|s| (s.id.clone(), s.default)).collect();
-        let allocation = defs.activities.iter().map(|a| (a.id.clone(), a.default_pct)).collect();
+        let stats = defs
+            .stats
+            .iter()
+            .map(|s| (s.id.clone(), s.default))
+            .collect();
+        let allocation = defs
+            .activities
+            .iter()
+            .map(|a| (a.id.clone(), a.default_pct))
+            .collect();
         LifeState {
-            stage, stats, allocation, relationships: vec![], finance: PersonalFinance { lifestyle: 35.0, ..Default::default() }, agent: None,
-            traits: vec![], timeline: vec![], pending: vec![], fired: BTreeMap::new(), flags: Default::default(), school: school.into(), class_year, months: 0, eligible: true,
+            stage,
+            stats,
+            allocation,
+            relationships: vec![],
+            finance: PersonalFinance {
+                lifestyle: 35.0,
+                ..Default::default()
+            },
+            agent: None,
+            traits: vec![],
+            timeline: vec![],
+            pending: vec![],
+            fired: BTreeMap::new(),
+            flags: Default::default(),
+            school: school.into(),
+            class_year,
+            months: 0,
+            eligible: true,
         }
     }
 
@@ -417,18 +507,37 @@ impl LifeState {
     }
 
     pub fn log(&mut self, season: Season, age: i32, text: impl Into<String>) {
-        self.timeline.push(LifeEntry { season, age, text: text.into() });
+        self.timeline.push(LifeEntry {
+            season,
+            age,
+            text: text.into(),
+        });
         if self.timeline.len() > 400 {
             self.timeline.remove(0);
         }
     }
 
     /// Set the time allocation. Values are rescaled so they sum to 100. Returns an error for unknown activities.
-    pub fn set_allocation(&mut self, defs: &LifeDefs, wanted: &[(String, f64)]) -> Result<(), String> {
-        let mut alloc: BTreeMap<String, f64> = defs.activities.iter().map(|a| (a.id.clone(), 0.0)).collect();
+    pub fn set_allocation(
+        &mut self,
+        defs: &LifeDefs,
+        wanted: &[(String, f64)],
+    ) -> Result<(), String> {
+        let mut alloc: BTreeMap<String, f64> = defs
+            .activities
+            .iter()
+            .map(|a| (a.id.clone(), 0.0))
+            .collect();
         for (k, v) in wanted {
             if !alloc.contains_key(k) {
-                return Err(format!("Unknown activity '{k}'. Options: {}.", defs.activities.iter().map(|a| a.id.as_str()).collect::<Vec<_>>().join(", ")));
+                return Err(format!(
+                    "Unknown activity '{k}'. Options: {}.",
+                    defs.activities
+                        .iter()
+                        .map(|a| a.id.as_str())
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                ));
             }
             if *v < 0.0 {
                 return Err("Time shares can't be negative.".into());
@@ -456,21 +565,58 @@ impl LifeState {
 
     /// Multiplier on development from momentum stats.
     pub fn dev_bonus(&self) -> (f64, f64) {
-        (1.0 + self.stat("dev_skill") / 100.0 * 0.6, 1.0 + self.stat("dev_phys") / 100.0 * 0.6)
+        (
+            1.0 + self.stat("dev_skill") / 100.0 * 0.6,
+            1.0 + self.stat("dev_phys") / 100.0 * 0.6,
+        )
     }
 }
 
 /// Cost-of-living index relative to 2024 (=1.0). Used to scale money events across eras.
 pub fn cpi(year: Season) -> f64 {
-    crate::era::interp(&[(1946, 0.095), (1960, 0.13), (1970, 0.19), (1980, 0.38), (1990, 0.6), (2000, 0.74), (2010, 0.88), (2024, 1.0), (2060, 2.4)], year as f64)
+    crate::era::interp(
+        &[
+            (1946, 0.095),
+            (1960, 0.13),
+            (1970, 0.19),
+            (1980, 0.38),
+            (1990, 0.6),
+            (2000, 0.74),
+            (2010, 0.88),
+            (2024, 1.0),
+            (2060, 2.4),
+        ],
+        year as f64,
+    )
 }
 
 /// Effective personal income tax rate by income relative to the era's average pro salary.
 pub fn tax_rate(year: Season, income: Money, avg_salary: Money) -> f64 {
     let r = income as f64 / avg_salary.max(1) as f64;
-    let base = if r < 0.3 { 0.10 } else if r < 1.0 { 0.20 } else if r < 3.0 { 0.30 } else if r < 10.0 { 0.37 } else { 0.42 };
+    let base = if r < 0.3 {
+        0.10
+    } else if r < 1.0 {
+        0.20
+    } else if r < 3.0 {
+        0.30
+    } else if r < 10.0 {
+        0.37
+    } else {
+        0.42
+    };
     // High-tax mid-century and 1970s: top rates were far higher.
-    let era = crate::era::interp(&[(1946, 0.18), (1963, 0.20), (1970, 0.12), (1981, 0.05), (1987, -0.05), (2000, -0.02), (2024, 0.0)], year as f64);
+    let era = crate::era::interp(
+        &[
+            (1946, 0.18),
+            (1963, 0.20),
+            (1970, 0.12),
+            (1981, 0.05),
+            (1987, -0.05),
+            (2000, -0.02),
+            (2024, 0.0),
+        ],
+        year as f64,
+    );
     (base + if r >= 1.0 { era } else { era * 0.4 }).clamp(0.05, 0.75)
 }
 
@@ -537,16 +683,32 @@ pub fn monthly_tick(p: &mut Player, inp: &LifeInputs, rng: &mut crate::rng::Rng)
     }
     // 3. Skill momentum feeds mood/energy → fitness
     p.fitness = (p.fitness as f64 * 0.7 + life.stat("energy") * 0.3).clamp(0.0, 100.0) as f32;
-    p.mood.overall = (p.mood.overall as f64 * 0.8 + (life.stat("happiness") - life.stat("stress") * 0.25 + 18.0) * 0.2).clamp(0.0, 100.0) as f32;
+    p.mood.overall = (p.mood.overall as f64 * 0.8
+        + (life.stat("happiness") - life.stat("stress") * 0.25 + 18.0) * 0.2)
+        .clamp(0.0, 100.0) as f32;
 
     // 4. Money.
     let f = &mut life.finance;
-    let monthly_income = inp.annual_income as f64 / 12.0 + f.endorsements as f64 / 12.0 + money_gain;
-    let tax = monthly_income * tax_rate(year, (inp.annual_income + f.endorsements).max(1), inp.avg_salary);
+    let monthly_income =
+        inp.annual_income as f64 / 12.0 + f.endorsements as f64 / 12.0 + money_gain;
+    let tax = monthly_income
+        * tax_rate(
+            year,
+            (inp.annual_income + f.endorsements).max(1),
+            inp.avg_salary,
+        );
     let cost = cpi(year) * (1200.0 + 4800.0 * f.lifestyle / 100.0)
-        + if life.stage == LifeStage::Pro || life.stage == LifeStage::Overseas { cpi(year) * 3000.0 } else { 0.0 };
+        + if life.stage == LifeStage::Pro || life.stage == LifeStage::Overseas {
+            cpi(year) * 3000.0
+        } else {
+            0.0
+        };
     // Agents take a cut of salary + endorsements
-    let agent_fee = life.agent.as_ref().map(|a| a.fee_pct / 100.0 * monthly_income).unwrap_or(0.0);
+    let agent_fee = life
+        .agent
+        .as_ref()
+        .map(|a| a.fee_pct / 100.0 * monthly_income)
+        .unwrap_or(0.0);
     let f = &mut life.finance;
     f.income_this_year += monthly_income as i64;
     f.taxes_this_year += tax as i64;
@@ -565,7 +727,9 @@ pub fn monthly_tick(p: &mut Player, inp: &LifeInputs, rng: &mut crate::rng::Rng)
     }
     f.debt = (f.debt as f64 * 1.01) as i64;
     // Excess cash goes into investments for mature players.
-    if f.cash > (cpi(year) * 400_000.0) as i64 && life.stats.get("maturity").copied().unwrap_or(0.0) > 55.0 {
+    if f.cash > (cpi(year) * 400_000.0) as i64
+        && life.stats.get("maturity").copied().unwrap_or(0.0) > 55.0
+    {
         let move_amt = f.cash / 2;
         f.cash -= move_amt;
         f.investments += move_amt;
@@ -577,7 +741,11 @@ pub fn monthly_tick(p: &mut Player, inp: &LifeInputs, rng: &mut crate::rng::Rng)
         let was = life.eligible;
         life.eligible = g >= 2.0;
         if was && !life.eligible {
-            log.push(format!("{} is now academically INELIGIBLE (GPA {:.2}). Raise your grades to play again.", p.name(), g));
+            log.push(format!(
+                "{} is now academically INELIGIBLE (GPA {:.2}). Raise your grades to play again.",
+                p.name(),
+                g
+            ));
         } else if !was && life.eligible {
             log.push(format!("{} regained academic eligibility.", p.name()));
         }
@@ -593,7 +761,14 @@ pub fn monthly_tick(p: &mut Player, inp: &LifeInputs, rng: &mut crate::rng::Rng)
         let defs_events = &inp.defs.events;
         let mut news = vec![];
         let pending_before = life.pending.len();
-        let mut ctx = LifeCtx { player: p, life: &mut life, year, team_win_pct: inp.team_win_pct, news: &mut news, cpi: cpi(year) };
+        let mut ctx = LifeCtx {
+            player: p,
+            life: &mut life,
+            year,
+            team_win_pct: inp.team_win_pct,
+            news: &mut news,
+            cpi: cpi(year),
+        };
         let out = roll(defs_events, &mut ctx, rng, intensity, 2, inp.auto_decisions);
         log.extend(out.log);
         ctx.life.pending.extend(out.pending);
@@ -612,7 +787,13 @@ pub fn monthly_tick(p: &mut Player, inp: &LifeInputs, rng: &mut crate::rng::Rng)
 }
 
 /// Resolve a pending life event for the user's player.
-pub fn resolve_event(p: &mut Player, defs: &LifeDefs, year: Season, event_id: &str, choice_id: &str) -> Result<Vec<String>, String> {
+pub fn resolve_event(
+    p: &mut Player,
+    defs: &LifeDefs,
+    year: Season,
+    event_id: &str,
+    choice_id: &str,
+) -> Result<Vec<String>, String> {
     let mut life = p.life.take().ok_or("This player has no life sim.")?;
     let idx = life.pending.iter().position(|e| e.event_id == event_id);
     let idx = match idx {
@@ -626,7 +807,14 @@ pub fn resolve_event(p: &mut Player, defs: &LifeDefs, year: Season, event_id: &s
     let mut news = vec![];
     let res;
     {
-        let mut ctx = LifeCtx { player: p, life: &mut life, year, team_win_pct: 0.5, news: &mut news, cpi: cpi(year) };
+        let mut ctx = LifeCtx {
+            player: p,
+            life: &mut life,
+            year,
+            team_win_pct: 0.5,
+            news: &mut news,
+            cpi: cpi(year),
+        };
         res = resolve(&pe, choice_id, &mut ctx);
     }
     let _ = defs;
@@ -683,8 +871,20 @@ impl<'a> EventContext for LifeCtx<'a> {
             "years_pro" => p.years_pro as f64,
             "team.win_pct" => self.team_win_pct,
             "class_year" => self.life.class_year as f64,
-            "injured" => if p.is_injured() { 1.0 } else { 0.0 },
-            "eligible" => if self.life.eligible { 1.0 } else { 0.0 },
+            "injured" => {
+                if p.is_injured() {
+                    1.0
+                } else {
+                    0.0
+                }
+            }
+            "eligible" => {
+                if self.life.eligible {
+                    1.0
+                } else {
+                    0.0
+                }
+            }
             _ => 0.0,
         }
     }
@@ -716,10 +916,16 @@ impl<'a> EventContext for LifeCtx<'a> {
         };
         if let Some(k) = target.strip_prefix("life.") {
             let cur = self.life.stats.get(k).copied().unwrap_or(0.0);
-            self.life.stats.insert(k.to_string(), apply_num(cur, &e.op, v));
+            self.life
+                .stats
+                .insert(k.to_string(), apply_num(cur, &e.op, v));
             // clamp is applied next tick by the drift step; clamp roughly now for display
             let nv = self.life.stats[k];
-            let clamped = if k == "grades" { nv.clamp(0.0, 4.0) } else { nv.clamp(0.0, 100.0) };
+            let clamped = if k == "grades" {
+                nv.clamp(0.0, 4.0)
+            } else {
+                nv.clamp(0.0, 100.0)
+            };
             self.life.stats.insert(k.to_string(), clamped);
         } else if let Some(k) = target.strip_prefix("attr.") {
             if let Some(a) = Attr::from_key(k) {
@@ -729,7 +935,9 @@ impl<'a> EventContext for LifeCtx<'a> {
             }
         } else if let Some(k) = target.strip_prefix("custom.") {
             let cur = self.player.custom.get(k).copied().unwrap_or(0.0);
-            self.player.custom.insert(k.to_string(), apply_num(cur, &e.op, v));
+            self.player
+                .custom
+                .insert(k.to_string(), apply_num(cur, &e.op, v));
         } else if let Some(k) = target.strip_prefix("rel.") {
             for r in self.life.relationships.iter_mut().filter(|r| r.kind == k) {
                 r.closeness = apply_num(r.closeness, &e.op, v).clamp(0.0, 100.0);
@@ -750,22 +958,44 @@ impl<'a> EventContext for LifeCtx<'a> {
                 "money_gamble" => {
                     // Big risky investment: 40% lose half the cash, 60% gain 40%... resolved deterministically from the year.
                     let stake = self.life.finance.cash / 3;
-                    let roll = ((self.player.id as i64 * 7919 + self.year as i64 * 104729 + self.life.months as i64 * 31) % 100) as f64 / 100.0;
+                    let roll = ((self.player.id as i64 * 7919
+                        + self.year as i64 * 104729
+                        + self.life.months as i64 * 31)
+                        % 100) as f64
+                        / 100.0;
                     if roll < 0.42 {
                         self.life.finance.cash -= stake / 2;
-                        self.news.push(format!("The investment went badly: -{}.", fmt_money(stake / 2)));
+                        self.news.push(format!(
+                            "The investment went badly: -{}.",
+                            fmt_money(stake / 2)
+                        ));
                     } else {
                         self.life.finance.cash += stake * 4 / 10;
-                        self.news.push(format!("The investment paid off: +{}.", fmt_money(stake * 4 / 10)));
+                        self.news.push(format!(
+                            "The investment paid off: +{}.",
+                            fmt_money(stake * 4 / 10)
+                        ));
                     }
                 }
                 "endorsement" => self.life.finance.endorsements += (v * self.cpi) as i64,
                 "asset" => self.life.finance.assets += (v * self.cpi) as i64,
-                "height" => self.player.height_in = (self.player.height_in as f64 + v).clamp(60.0, 94.0) as u8,
-                "mood" => self.player.mood.overall = (apply_num(self.player.mood.overall as f64, &e.op, v)).clamp(0.0, 100.0) as f32,
+                "height" => {
+                    self.player.height_in =
+                        (self.player.height_in as f64 + v).clamp(60.0, 94.0) as u8
+                }
+                "mood" => {
+                    self.player.mood.overall =
+                        (apply_num(self.player.mood.overall as f64, &e.op, v)).clamp(0.0, 100.0)
+                            as f32
+                }
                 "wear" => self.player.wear = (self.player.wear as f64 + v).clamp(0.0, 100.0) as f32,
-                "fitness" => self.player.fitness = (self.player.fitness as f64 + v).clamp(0.0, 100.0) as f32,
-                "potential" => self.player.potential = (self.player.potential as f64 + v).clamp(30.0, 99.0) as u8,
+                "fitness" => {
+                    self.player.fitness = (self.player.fitness as f64 + v).clamp(0.0, 100.0) as f32
+                }
+                "potential" => {
+                    self.player.potential =
+                        (self.player.potential as f64 + v).clamp(30.0, 99.0) as u8
+                }
                 "flag" => match e.op.as_str() {
                     "flag_remove" => {
                         self.life.flags.remove(&e.text);
@@ -800,7 +1030,11 @@ mod tests {
         let ids: Vec<&str> = d.stats.iter().map(|s| s.id.as_str()).collect();
         for a in &d.activities {
             for (k, _) in &a.effects {
-                assert!(k == "money" || ids.contains(&k.as_str()), "activity {} touches unknown stat {k}", a.id);
+                assert!(
+                    k == "money" || ids.contains(&k.as_str()),
+                    "activity {} touches unknown stat {k}",
+                    a.id
+                );
             }
         }
         assert!(d.events.len() >= 30);

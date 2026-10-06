@@ -89,7 +89,11 @@ impl Content {
         if let Some(v) = self.tuning.get(key) {
             return *v;
         }
-        crate::game::default_tuning().iter().find(|t| t.key == key).map(|t| t.default).unwrap_or(1.0)
+        crate::game::default_tuning()
+            .iter()
+            .find(|t| t.key == key)
+            .map(|t| t.default)
+            .unwrap_or(1.0)
     }
     pub fn economy_enabled_max(&self, year: i32) -> bool {
         self.rules(year).max_contract
@@ -125,7 +129,12 @@ pub struct ListPatch<T> {
 
 impl<T> Default for ListPatch<T> {
     fn default() -> Self {
-        ListPatch { set: None, add: vec![], replace: vec![], remove: vec![] }
+        ListPatch {
+            set: None,
+            add: vec![],
+            replace: vec![],
+            remove: vec![],
+        }
     }
 }
 
@@ -180,8 +189,10 @@ impl Content {
         let mut warnings = vec![];
         m.settings.apply(&mut self.settings, |x| x.key.clone());
         m.presets.apply(&mut self.presets, |x| x.id.clone());
-        m.rule_changes.apply(&mut self.rule_timeline, |x| x.id.clone());
-        m.style_anchors.apply(&mut self.style_anchors, |x| x.year.to_string());
+        m.rule_changes
+            .apply(&mut self.rule_timeline, |x| x.id.clone());
+        m.style_anchors
+            .apply(&mut self.style_anchors, |x| x.year.to_string());
         m.franchises.apply(&mut self.franchises, |x| x.key.clone());
         m.name_pools.apply(&mut self.pools, |x| x.id.clone());
         m.countries.apply(&mut self.countries, |x| x.code.clone());
@@ -190,8 +201,10 @@ impl Content {
         m.injuries.apply(&mut self.injuries, |x| x.id.clone());
         m.life_events.apply(&mut self.life.events, |x| x.id.clone());
         m.life_stats.apply(&mut self.life.stats, |x| x.id.clone());
-        m.life_activities.apply(&mut self.life.activities, |x| x.id.clone());
-        m.league_events.apply(&mut self.league_events, |x| x.id.clone());
+        m.life_activities
+            .apply(&mut self.life.activities, |x| x.id.clone());
+        m.league_events
+            .apply(&mut self.league_events, |x| x.id.clone());
         m.awards.apply(&mut self.awards, |x| x.id.clone());
         if let Some(e) = &m.economy {
             self.economy = e.clone();
@@ -210,12 +223,21 @@ impl Content {
             self.tuning.insert(k.clone(), *v);
         }
         warnings.extend(self.validate());
-        self.mods_applied.push(if m.info.name.is_empty() { "(unnamed mod)".into() } else { m.info.name.clone() });
+        self.mods_applied.push(if m.info.name.is_empty() {
+            "(unnamed mod)".into()
+        } else {
+            m.info.name.clone()
+        });
         warnings
     }
 
     pub fn apply_mod_json(&mut self, json: &str) -> Result<Vec<String>, String> {
-        let m: ModPack = serde_json::from_str(json).map_err(|e| format!("Could not read the mod file: {e}. Check commas, quotes and brackets near line {}.", e.line()))?;
+        let m: ModPack = serde_json::from_str(json).map_err(|e| {
+            format!(
+                "Could not read the mod file: {e}. Check commas, quotes and brackets near line {}.",
+                e.line()
+            )
+        })?;
         Ok(self.apply_mod(&m))
     }
 
@@ -227,29 +249,49 @@ impl Content {
         for d in &self.injuries {
             for (k, _) in &d.permanent {
                 if Attr::from_key(k).is_none() {
-                    errs.push(format!("Injury '{}' lowers unknown attribute '{k}'. Valid keys: {}.", d.id, Attr::ALL.iter().map(|a| a.key()).collect::<Vec<_>>().join(", ")));
+                    errs.push(format!(
+                        "Injury '{}' lowers unknown attribute '{k}'. Valid keys: {}.",
+                        d.id,
+                        Attr::ALL
+                            .iter()
+                            .map(|a| a.key())
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    ));
                 }
             }
             if d.weight <= 0.0 {
-                errs.push(format!("Injury '{}' has weight {} but must be above 0.", d.id, d.weight));
+                errs.push(format!(
+                    "Injury '{}' has weight {} but must be above 0.",
+                    d.id, d.weight
+                ));
             }
         }
         for b in &self.badges {
             for (k, _) in &b.requires {
                 if Attr::from_key(k).is_none() {
-                    errs.push(format!("Badge '{}' requires unknown attribute '{k}'.", b.id));
+                    errs.push(format!(
+                        "Badge '{}' requires unknown attribute '{k}'.",
+                        b.id
+                    ));
                 }
             }
         }
         for a in &self.archetypes {
             for k in a.attr_bias.keys() {
                 if Attr::from_key(k).is_none() {
-                    errs.push(format!("Archetype '{}' biases unknown attribute '{k}'.", a.id));
+                    errs.push(format!(
+                        "Archetype '{}' biases unknown attribute '{k}'.",
+                        a.id
+                    ));
                 }
             }
             for k in a.family_bias.keys() {
                 if crate::player::Family::from_key(k).is_none() {
-                    errs.push(format!("Archetype '{}' biases unknown skill family '{k}'.", a.id));
+                    errs.push(format!(
+                        "Archetype '{}' biases unknown skill family '{k}'.",
+                        a.id
+                    ));
                 }
             }
             if a.positions.iter().sum::<f64>() <= 0.0 {
@@ -258,7 +300,10 @@ impl Content {
         }
         for c in &self.countries {
             if !self.pools.iter().any(|p| p.id == c.pool) {
-                errs.push(format!("Country '{}' uses name pool '{}' which doesn't exist.", c.code, c.pool));
+                errs.push(format!(
+                    "Country '{}' uses name pool '{}' which doesn't exist.",
+                    c.code, c.pool
+                ));
             }
         }
         for s in &self.life.stats {
@@ -269,7 +314,10 @@ impl Content {
         for a in &self.life.activities {
             for (k, _) in &a.effects {
                 if k != "money" && !self.life.stats.iter().any(|s| &s.id == k) {
-                    errs.push(format!("Activity '{}' changes unknown life stat '{k}'.", a.id));
+                    errs.push(format!(
+                        "Activity '{}' changes unknown life stat '{k}'.",
+                        a.id
+                    ));
                 }
             }
         }
@@ -315,12 +363,26 @@ pub fn export_defaults(dir: &std::path::Path) -> Result<Vec<String>, String> {
     w("awards.json", pretty(&c.awards))?;
     w("tuning.json", pretty(&crate::game::default_tuning()))?;
     let example = ModPack {
-        info: ModInfo { name: "Example mod".into(), author: "you".into(), version: "1.0".into(), description: "Copy entries from the other files here to change them. Delete what you don't need.".into() },
-        settings_defaults: [("injuries.frequency".to_string(), SettingValue::Num(1.5))].into_iter().collect(),
-        tuning: [("game.fatigue_rate".to_string(), 1.2)].into_iter().collect(),
+        info: ModInfo {
+            name: "Example mod".into(),
+            author: "you".into(),
+            version: "1.0".into(),
+            description:
+                "Copy entries from the other files here to change them. Delete what you don't need."
+                    .into(),
+        },
+        settings_defaults: [("injuries.frequency".to_string(), SettingValue::Num(1.5))]
+            .into_iter()
+            .collect(),
+        tuning: [("game.fatigue_rate".to_string(), 1.2)]
+            .into_iter()
+            .collect(),
         ..Default::default()
     };
-    w("example_mod.json", serde_json::to_string_pretty(&example).unwrap())?;
+    w(
+        "example_mod.json",
+        serde_json::to_string_pretty(&example).unwrap(),
+    )?;
     Ok(written)
 }
 
@@ -339,7 +401,11 @@ mod erased {
 pub fn load_mods_from_dir(content: &mut Content, dir: &std::path::Path) -> Vec<String> {
     let mut msgs = vec![];
     let mut files: Vec<_> = match std::fs::read_dir(dir) {
-        Ok(rd) => rd.filter_map(|e| e.ok()).map(|e| e.path()).filter(|p| p.extension().map(|x| x == "json").unwrap_or(false)).collect(),
+        Ok(rd) => rd
+            .filter_map(|e| e.ok())
+            .map(|e| e.path())
+            .filter(|p| p.extension().map(|x| x == "json").unwrap_or(false))
+            .collect(),
         Err(_) => return msgs,
     };
     files.sort();
@@ -379,7 +445,14 @@ mod tests {
         assert!(w.is_empty(), "{w:?}");
         assert_eq!(c.badges.len(), before - 1);
         assert_eq!(c.tune("game.fatigue_rate"), 2.0);
-        assert_eq!(c.settings.iter().find(|d| d.key == "injuries.frequency").unwrap().default, SettingValue::Num(2.0));
+        assert_eq!(
+            c.settings
+                .iter()
+                .find(|d| d.key == "injuries.frequency")
+                .unwrap()
+                .default,
+            SettingValue::Num(2.0)
+        );
         assert!(c.apply_mod_json("{ not json").is_err());
     }
 

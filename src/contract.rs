@@ -51,11 +51,26 @@ pub struct Contract {
 impl Contract {
     pub fn new(salary_by_year: Vec<Money>, kind: ContractKind, signed: Season) -> Contract {
         let n = salary_by_year.len() as u8;
-        Contract { salaries: salary_by_year, kind, option: OptionKind::None, guaranteed: true, no_trade: false, trade_kicker: 0.0, signed, total_years: n }
+        Contract {
+            salaries: salary_by_year,
+            kind,
+            option: OptionKind::None,
+            guaranteed: true,
+            no_trade: false,
+            trade_kicker: 0.0,
+            signed,
+            total_years: n,
+        }
     }
 
     /// Flat or rising contract: first-year salary, `years`, annual raise fraction (0.08 = 8%).
-    pub fn rising(first: Money, years: u8, raise: f64, kind: ContractKind, signed: Season) -> Contract {
+    pub fn rising(
+        first: Money,
+        years: u8,
+        raise: f64,
+        kind: ContractKind,
+        signed: Season,
+    ) -> Contract {
         let mut v = vec![];
         let mut s = first as f64;
         for _ in 0..years.max(1) {

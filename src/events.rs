@@ -48,19 +48,44 @@ fn add() -> String {
 
 impl Effect {
     pub fn add(target: &str, value: f64) -> Effect {
-        Effect { target: target.into(), op: "add".into(), value, text: String::new() }
+        Effect {
+            target: target.into(),
+            op: "add".into(),
+            value,
+            text: String::new(),
+        }
     }
     pub fn set(target: &str, value: f64) -> Effect {
-        Effect { target: target.into(), op: "set".into(), value, text: String::new() }
+        Effect {
+            target: target.into(),
+            op: "set".into(),
+            value,
+            text: String::new(),
+        }
     }
     pub fn flag(name: &str) -> Effect {
-        Effect { target: "flag".into(), op: "flag_add".into(), value: 0.0, text: name.into() }
+        Effect {
+            target: "flag".into(),
+            op: "flag_add".into(),
+            value: 0.0,
+            text: name.into(),
+        }
     }
     pub fn unflag(name: &str) -> Effect {
-        Effect { target: "flag".into(), op: "flag_remove".into(), value: 0.0, text: name.into() }
+        Effect {
+            target: "flag".into(),
+            op: "flag_remove".into(),
+            value: 0.0,
+            text: name.into(),
+        }
     }
     pub fn news(text: &str) -> Effect {
-        Effect { target: "news".into(), op: "add".into(), value: 0.0, text: text.into() }
+        Effect {
+            target: "news".into(),
+            op: "add".into(),
+            value: 0.0,
+            text: text.into(),
+        }
     }
 }
 
@@ -167,7 +192,8 @@ pub fn eligible(e: &EventDef, ctx: &dyn EventContext) -> bool {
 }
 
 pub fn render(text: &str, ctx: &dyn EventContext) -> String {
-    text.replace("{name}", &ctx.subject_name()).replace("{year}", &ctx.year().to_string())
+    text.replace("{name}", &ctx.subject_name())
+        .replace("{year}", &ctx.year().to_string())
 }
 
 /// An event waiting for the human to choose.
@@ -188,7 +214,14 @@ pub struct EventOutcome {
 
 /// Roll all events once for a context. `intensity` scales every chance. `max_events` caps how
 /// many fire in one tick so the player isn't flooded.
-pub fn roll(defs: &[EventDef], ctx: &mut dyn EventContext, rng: &mut Rng, intensity: f64, max_events: usize, auto_choice: bool) -> EventOutcome {
+pub fn roll(
+    defs: &[EventDef],
+    ctx: &mut dyn EventContext,
+    rng: &mut Rng,
+    intensity: f64,
+    max_events: usize,
+    auto_choice: bool,
+) -> EventOutcome {
     let mut out = EventOutcome::default();
     let mut fired = 0;
     // Random order so no event is always checked first.
@@ -214,7 +247,12 @@ pub fn roll(defs: &[EventDef], ctx: &mut dyn EventContext, rng: &mut Rng, intens
                 ctx.apply(ef, &mut out.log);
             }
         } else {
-            let avail: Vec<Choice> = e.choices.iter().filter(|c| c.conditions.iter().all(|k| check(k, ctx))).cloned().collect();
+            let avail: Vec<Choice> = e
+                .choices
+                .iter()
+                .filter(|c| c.conditions.iter().all(|k| check(k, ctx)))
+                .cloned()
+                .collect();
             if avail.is_empty() {
                 continue;
             }
@@ -224,12 +262,20 @@ pub fn roll(defs: &[EventDef], ctx: &mut dyn EventContext, rng: &mut Rng, intens
             }
             if auto_choice {
                 let c = &avail[rng.range_usize(avail.len())];
-                out.log.push(format!("{}: {} (handled automatically: {})", e.title, text, c.label));
+                out.log.push(format!(
+                    "{}: {} (handled automatically: {})",
+                    e.title, text, c.label
+                ));
                 for ef in &c.effects {
                     ctx.apply(ef, &mut out.log);
                 }
             } else {
-                out.pending.push(PendingEvent { event_id: e.id.clone(), title: e.title.clone(), text, choices: avail });
+                out.pending.push(PendingEvent {
+                    event_id: e.id.clone(),
+                    title: e.title.clone(),
+                    text,
+                    choices: avail,
+                });
             }
         }
     }
@@ -237,8 +283,21 @@ pub fn roll(defs: &[EventDef], ctx: &mut dyn EventContext, rng: &mut Rng, intens
 }
 
 /// Apply a chosen option of a pending event.
-pub fn resolve(p: &PendingEvent, choice_id: &str, ctx: &mut dyn EventContext) -> Result<Vec<String>, String> {
-    let c = p.choices.iter().find(|c| c.id == choice_id).ok_or_else(|| format!("'{}' is not one of the options for '{}'.", choice_id, p.title))?;
+pub fn resolve(
+    p: &PendingEvent,
+    choice_id: &str,
+    ctx: &mut dyn EventContext,
+) -> Result<Vec<String>, String> {
+    let c = p
+        .choices
+        .iter()
+        .find(|c| c.id == choice_id)
+        .ok_or_else(|| {
+            format!(
+                "'{}' is not one of the options for '{}'.",
+                choice_id, p.title
+            )
+        })?;
     let mut log = vec![];
     if !c.result.is_empty() {
         log.push(render(&c.result, ctx));
@@ -258,19 +317,32 @@ pub fn validate(defs: &[EventDef]) -> Vec<String> {
             errs.push(format!("Event id '{}' is used twice.", e.id));
         }
         if e.chance < 0.0 || e.chance > 1.0 {
-            errs.push(format!("Event '{}' has chance {} but chance must be between 0 and 1.", e.id, e.chance));
+            errs.push(format!(
+                "Event '{}' has chance {} but chance must be between 0 and 1.",
+                e.id, e.chance
+            ));
         }
         if e.text.trim().is_empty() {
             errs.push(format!("Event '{}' has no text.", e.id));
         }
         for c in &e.conditions {
             if ![">=", "<=", ">", "<", "==", "!=", "no_flag", "has_flag"].contains(&c.op.as_str()) {
-                errs.push(format!("Event '{}' has a condition with unknown operator '{}'.", e.id, c.op));
+                errs.push(format!(
+                    "Event '{}' has a condition with unknown operator '{}'.",
+                    e.id, c.op
+                ));
             }
         }
-        for ef in e.effects.iter().chain(e.choices.iter().flat_map(|c| c.effects.iter())) {
+        for ef in e
+            .effects
+            .iter()
+            .chain(e.choices.iter().flat_map(|c| c.effects.iter()))
+        {
             if !["add", "set", "mul", "flag_add", "flag_remove"].contains(&ef.op.as_str()) {
-                errs.push(format!("Event '{}' has an effect with unknown op '{}'.", e.id, ef.op));
+                errs.push(format!(
+                    "Event '{}' has an effect with unknown op '{}'.",
+                    e.id, ef.op
+                ));
             }
         }
     }
@@ -319,12 +391,29 @@ mod tests {
     #[test]
     fn event_fires_and_applies() {
         let defs = vec![EventDef {
-            id: "e".into(), title: "T".into(), text: "{name} does a thing".into(), category: "x".into(), chance: 1.0,
-            stages: vec!["high_school".into()], min_year: 0, max_year: 9999,
-            conditions: vec![Cond { var: "life.energy".into(), op: ">=".into(), value: 10.0 }], once: true, cooldown: 0,
-            effects: vec![Effect::add("life.rep", 5.0)], choices: vec![],
+            id: "e".into(),
+            title: "T".into(),
+            text: "{name} does a thing".into(),
+            category: "x".into(),
+            chance: 1.0,
+            stages: vec!["high_school".into()],
+            min_year: 0,
+            max_year: 9999,
+            conditions: vec![Cond {
+                var: "life.energy".into(),
+                op: ">=".into(),
+                value: 10.0,
+            }],
+            once: true,
+            cooldown: 0,
+            effects: vec![Effect::add("life.rep", 5.0)],
+            choices: vec![],
         }];
-        let mut ctx = Ctx { vars: BTreeMap::new(), flags: BTreeSet::new(), fired: BTreeMap::new() };
+        let mut ctx = Ctx {
+            vars: BTreeMap::new(),
+            flags: BTreeSet::new(),
+            fired: BTreeMap::new(),
+        };
         ctx.vars.insert("life.energy".into(), 50.0);
         let mut rng = Rng::new(1);
         let o = roll(&defs, &mut ctx, &mut rng, 1.0, 3, false);

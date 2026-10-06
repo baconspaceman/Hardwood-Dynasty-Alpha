@@ -10,25 +10,63 @@
 use crate::era::{interp, CapType, Rules};
 use serde::{Deserialize, Serialize};
 
-pub type Money = i64;
+pub use crate::types::Money;
 
 pub const M: i64 = 1_000_000;
 
 /// (season start, salary cap, luxury tax line) in millions of dollars. Tax 0 = no tax that year.
 pub fn builtin_cap_table() -> Vec<CapRow> {
     let rows: &[(i32, f64, f64)] = &[
-        (1984, 3.6, 0.0), (1985, 4.233, 0.0), (1986, 4.945, 0.0), (1987, 6.164, 0.0), (1988, 7.232, 0.0),
-        (1989, 9.802, 0.0), (1990, 11.871, 0.0), (1991, 12.5, 0.0), (1992, 14.0, 0.0), (1993, 15.175, 0.0),
-        (1994, 15.964, 0.0), (1995, 15.964, 0.0), (1996, 24.363, 0.0), (1997, 26.9, 0.0), (1998, 30.0, 0.0),
-        (1999, 34.0, 0.0), (2000, 35.5, 0.0), (2001, 42.5, 52.9), (2002, 40.271, 52.8), (2003, 43.84, 54.6),
-        (2004, 43.87, 61.7), (2005, 49.5, 61.7), (2006, 53.135, 65.4), (2007, 55.63, 67.865), (2008, 58.68, 71.15),
-        (2009, 57.7, 69.92), (2010, 58.044, 70.307), (2011, 58.044, 70.307), (2012, 58.044, 70.307),
-        (2013, 58.679, 71.748), (2014, 63.065, 76.829), (2015, 70.0, 84.74), (2016, 94.143, 113.287),
-        (2017, 99.093, 119.266), (2018, 101.869, 123.733), (2019, 109.14, 132.627), (2020, 109.14, 132.627),
-        (2021, 112.414, 136.606), (2022, 123.655, 150.267), (2023, 136.021, 165.294), (2024, 140.588, 170.814),
+        (1984, 3.6, 0.0),
+        (1985, 4.233, 0.0),
+        (1986, 4.945, 0.0),
+        (1987, 6.164, 0.0),
+        (1988, 7.232, 0.0),
+        (1989, 9.802, 0.0),
+        (1990, 11.871, 0.0),
+        (1991, 12.5, 0.0),
+        (1992, 14.0, 0.0),
+        (1993, 15.175, 0.0),
+        (1994, 15.964, 0.0),
+        (1995, 15.964, 0.0),
+        (1996, 24.363, 0.0),
+        (1997, 26.9, 0.0),
+        (1998, 30.0, 0.0),
+        (1999, 34.0, 0.0),
+        (2000, 35.5, 0.0),
+        (2001, 42.5, 52.9),
+        (2002, 40.271, 52.8),
+        (2003, 43.84, 54.6),
+        (2004, 43.87, 61.7),
+        (2005, 49.5, 61.7),
+        (2006, 53.135, 65.4),
+        (2007, 55.63, 67.865),
+        (2008, 58.68, 71.15),
+        (2009, 57.7, 69.92),
+        (2010, 58.044, 70.307),
+        (2011, 58.044, 70.307),
+        (2012, 58.044, 70.307),
+        (2013, 58.679, 71.748),
+        (2014, 63.065, 76.829),
+        (2015, 70.0, 84.74),
+        (2016, 94.143, 113.287),
+        (2017, 99.093, 119.266),
+        (2018, 101.869, 123.733),
+        (2019, 109.14, 132.627),
+        (2020, 109.14, 132.627),
+        (2021, 112.414, 136.606),
+        (2022, 123.655, 150.267),
+        (2023, 136.021, 165.294),
+        (2024, 140.588, 170.814),
         (2025, 154.647, 187.895),
     ];
-    rows.iter().map(|r| CapRow { year: r.0, cap: (r.1 * M as f64) as i64, tax: (r.2 * M as f64) as i64 }).collect()
+    rows.iter()
+        .map(|r| CapRow {
+            year: r.0,
+            cap: (r.1 * M as f64) as i64,
+            tax: (r.2 * M as f64) as i64,
+        })
+        .collect()
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -41,8 +79,15 @@ pub struct CapRow {
 /// Average player salary before the cap era (dollars). Rough history of pro basketball pay.
 pub fn builtin_avg_salary_curve() -> Vec<(i32, f64)> {
     vec![
-        (1946, 4_000.0), (1950, 7_500.0), (1955, 9_500.0), (1960, 13_000.0), (1965, 20_000.0), (1970, 45_000.0),
-        (1975, 120_000.0), (1980, 215_000.0), (1984, 330_000.0),
+        (1946, 4_000.0),
+        (1950, 7_500.0),
+        (1955, 9_500.0),
+        (1960, 13_000.0),
+        (1965, 20_000.0),
+        (1970, 45_000.0),
+        (1975, 120_000.0),
+        (1980, 215_000.0),
+        (1984, 330_000.0),
     ]
 }
 
@@ -136,20 +181,45 @@ impl EconomyTables {
             i64::MAX / 4
         };
         let (first_apron, second_apron) = if rules.aprons {
-            ((tax_line as f64 * self.first_apron_ratio) as i64, (tax_line as f64 * self.second_apron_ratio) as i64)
+            (
+                (tax_line as f64 * self.first_apron_ratio) as i64,
+                (tax_line as f64 * self.second_apron_ratio) as i64,
+            )
         } else {
             (i64::MAX / 4, i64::MAX / 4)
         };
         // Minimum salary as % of cap: 2.0% at 1984 → 1.0% by 1996 → 0.82% modern.
-        let min_pct = interp(&[(1984, 0.020), (1996, 0.0100), (2010, 0.0085), (2024, 0.0082)], year as f64);
+        let min_pct = interp(
+            &[
+                (1984, 0.020),
+                (1996, 0.0100),
+                (2010, 0.0085),
+                (2024, 0.0082),
+            ],
+            year as f64,
+        );
         let (min_salary, avg_salary) = if year >= 1984 {
             ((cap as f64 * min_pct) as i64, (cap as f64 / 11.5) as i64)
         } else {
             let avg = interp(&self.avg_salary_pre_cap, year as f64);
             ((avg * 0.4) as i64, avg as i64)
         };
-        let max_base = if rules.max_contract { (cap as f64 * self.max_pct[0].1) as i64 } else { (cap as f64 * 0.38) as i64 };
-        SeasonMoney { year, cap, cap_enforced, tax_line, first_apron, second_apron, min_salary, max_salary_base: max_base, avg_salary }
+        let max_base = if rules.max_contract {
+            (cap as f64 * self.max_pct[0].1) as i64
+        } else {
+            (cap as f64 * 0.38) as i64
+        };
+        SeasonMoney {
+            year,
+            cap,
+            cap_enforced,
+            tax_line,
+            first_apron,
+            second_apron,
+            min_salary,
+            max_salary_base: max_base,
+            avg_salary,
+        }
     }
 
     /// Max salary as a % of the cap depending on years of service.
@@ -170,7 +240,11 @@ impl EconomyTables {
             return 0;
         }
         let over = (payroll - money.tax_line) as f64;
-        let rate = if repeater { self.tax_rate_repeater } else { self.tax_rate_base };
+        let rate = if repeater {
+            self.tax_rate_repeater
+        } else {
+            self.tax_rate_base
+        };
         // bracket step: every 5/136 of cap over adds +0.25 to the rate (scales with the cap)
         let bracket = money.cap as f64 * (5.0 / 136.0);
         let mut tax = 0.0;
@@ -226,7 +300,10 @@ mod tests {
         assert!(m.first_apron > m.tax_line && m.second_apron > m.first_apron);
         assert_eq!(t.luxury_tax(&m, m.tax_line - 1, false), 0);
         assert!(t.luxury_tax(&m, m.tax_line + 10 * M, false) > 15 * M);
-        assert!(t.luxury_tax(&m, m.tax_line + 10 * M, true) > t.luxury_tax(&m, m.tax_line + 10 * M, false));
+        assert!(
+            t.luxury_tax(&m, m.tax_line + 10 * M, true)
+                > t.luxury_tax(&m, m.tax_line + 10 * M, false)
+        );
         let old = t.season_money(&rules_for(1990), t.table_cap(1990), true);
         assert!(old.tax_line > old.cap * 100); // no tax in 1990
     }
